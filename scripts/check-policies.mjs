@@ -177,6 +177,18 @@ const securityWorkflowSource = await readFile(
   resolve(projectRoot, ".github/workflows/security.yml"),
   "utf8",
 );
+const releaseWorkflowSource = await readFile(
+  resolve(projectRoot, ".github/workflows/release-candidate.yml"),
+  "utf8",
+);
+if (
+  !releaseWorkflowSource.includes(
+    "if: github.ref_type == 'tag' && vars.NPM_STAGE_ENABLED == 'true'",
+  ) ||
+  releaseWorkflowSource.includes("inputs.stage")
+) {
+  failures.push("npm staging must be gated by an approved release-candidate tag");
+}
 for (const tool of admittedCiTools) {
   if (
     !securityWorkflowSource.includes(tool.archive) ||

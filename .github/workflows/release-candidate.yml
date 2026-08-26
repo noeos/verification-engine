@@ -5,12 +5,6 @@ on:
     tags:
       - "v*.*.*-rc.*"
   workflow_dispatch:
-    inputs:
-      stage:
-        description: Request stage-only npm publication after protected-environment approval
-        required: true
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -88,7 +82,7 @@ jobs:
   stage:
     name: Protected npm stage
     needs: evidence
-    if: github.event_name == 'workflow_dispatch' && inputs.stage && vars.NPM_STAGE_ENABLED == 'true'
+    if: github.ref_type == 'tag' && vars.NPM_STAGE_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: npm-staging
