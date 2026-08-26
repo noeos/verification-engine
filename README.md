@@ -36,7 +36,7 @@ These controls describe the repository and release process. Product guarantees a
 | Primary                      | 24.20.0 |     11.19.0 |
 | Node 22 minimum              | 22.14.0 |      10.9.2 |
 | Node 22 latest               | 22.23.2 |      10.9.8 |
-| Current compatibility signal |  26.8.0 |     11.19.0 |
+| Current compatibility signal |  26.7.0 |     11.19.0 |
 
 The exact, reviewed mapping is stored in [`security/runtime-toolchain.json`](./security/runtime-toolchain.json). npm is used from the corresponding official Node distribution; CI does not replace it globally.
 

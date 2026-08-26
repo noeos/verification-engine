@@ -295,7 +295,7 @@ for (const workflow of workflowFiles) {
   }
   const setupNodeCount = [...source.matchAll(/^\s*uses:\s*actions\/setup-node@/gmu)].length;
   const toolchainCheckCount = [
-    ...source.matchAll(/^\s*run:\s*npm run toolchain:check -- --profile\s+/gmu),
+    ...source.matchAll(/^\s*run:\s*node scripts\/check-toolchain\.mjs --profile\s+/gmu),
   ].length;
   if (setupNodeCount !== toolchainCheckCount) {
     failures.push(`${toPosix(workflow)} must verify every configured Node/npm toolchain`);
@@ -359,6 +359,7 @@ const requiredPaths = [
   ".github/dependabot.yml",
   "packages/engine/src/index.ts",
   "packages/cli/src/main.ts",
+  "scripts/check-runtime-smoke.mjs",
   "security/dependency-inventory.json",
   "security/allowed-signers",
   "security/runtime-toolchain.json",

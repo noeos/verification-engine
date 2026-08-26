@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 
-import { assertProjectRoot, npmCliPath, projectRoot, readJson } from "./project.mjs";
-import { getToolchainProfile, validateActiveToolchain } from "./toolchain-rules.mjs";
+import { assertProjectRoot, projectRoot, readJson } from "./project.mjs";
+import {
+  bundledNpmManifestPath,
+  getToolchainProfile,
+  validateActiveToolchain,
+} from "./toolchain-rules.mjs";
 
 await assertProjectRoot();
 
 const profileName = readProfileArgument(process.argv.slice(2));
 const manifest = await readJson(resolve(projectRoot, "security/runtime-toolchain.json"));
 const expected = getToolchainProfile(manifest, profileName);
-const npmManifestPath = resolve(dirname(dirname(npmCliPath())), "package.json");
+const npmManifestPath = bundledNpmManifestPath(process.execPath);
 const npmManifest = await readJson(npmManifestPath);
 
 if (npmManifest.name !== "npm") {

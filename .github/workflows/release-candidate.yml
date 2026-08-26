@@ -57,7 +57,7 @@ jobs:
           node-version-file: .node-version
           registry-url: https://registry.npmjs.org
       - name: Verify primary Node and bundled npm
-        run: npm run toolchain:check -- --profile node-24-primary
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Install from reviewed lockfile
         run: npm ci --ignore-scripts --omit=optional
       - name: Run all local gates
@@ -107,7 +107,7 @@ jobs:
           node-version-file: .node-version
           registry-url: https://registry.npmjs.org
       - name: Verify trusted-publishing runtime
-        run: npm run toolchain:check -- --profile node-24-primary
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Stage packages through OIDC
         shell: bash
         run: |

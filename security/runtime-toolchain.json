@@ -17,9 +17,10 @@
       "role": "primary"
     },
     "node-26-current": {
-      "node": "26.8.0",
+      "node": "26.7.0",
       "npm": "11.19.0",
-      "role": "informational-current"
+      "role": "informational-current",
+      "selectionReason": "Node 26.8.0 is listed in the distribution index but its Linux binary identifies as 26.8.0-alpha.0.0.0; 26.7.0 is the latest verified stable runtime."
     }
   },
   "reviewedAt": "2026-08-26",

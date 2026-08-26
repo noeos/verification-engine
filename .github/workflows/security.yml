@@ -54,7 +54,7 @@ jobs:
         with:
           node-version-file: .node-version
       - name: Verify primary Node and bundled npm
-        run: npm run toolchain:check -- --profile node-24-primary
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Install and build without lifecycle scripts
         run: npm ci --ignore-scripts --omit=optional && npm run build
       - name: Analyze
@@ -112,6 +112,6 @@ jobs:
         with:
           node-version-file: .node-version
       - name: Verify primary Node and bundled npm
-        run: npm run toolchain:check -- --profile node-24-primary
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Install and audit
         run: npm ci --ignore-scripts --omit=optional && npm run security:audit && npm run security:signatures && npm run license:check

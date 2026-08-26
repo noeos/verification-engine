@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  bundledNpmManifestPath,
   getToolchainProfile,
   validateActiveToolchain,
   validateToolchainManifest,
@@ -49,4 +50,16 @@ void test("active runtime must match both Node and its bundled npm", () => {
   assert.deepEqual(validateActiveToolchain({ node: "24.20.0", npm: "11.18.0" }, expected), [
     "npm 11.19.0 is required; found 11.18.0",
   ]);
+});
+
+void test("bundled npm is resolved from the active official Node layout", () => {
+  assert.equal(
+    bundledNpmManifestPath("/opt/node/bin/node", "linux"),
+    "/opt/node/lib/node_modules/npm/package.json",
+  );
+  assert.equal(
+    bundledNpmManifestPath("C:\\node\\node.exe", "win32"),
+    "C:\\node\\node_modules\\npm\\package.json",
+  );
+  assert.throws(() => bundledNpmManifestPath("", "linux"), /executable path is required/u);
 });

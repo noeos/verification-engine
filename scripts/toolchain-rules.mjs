@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { dirname, resolve, win32 } from "node:path";
+
 const exactVersionPattern = /^\d+\.\d+\.\d+$/u;
 const profileNamePattern = /^node-\d+-(?:current|latest|minimum|primary)$/u;
 const allowedRoles = new Set([
@@ -29,6 +31,16 @@ export function getToolchainProfile(manifest, profileName) {
     throw new Error(`Unknown runtime toolchain profile: ${profileName}`);
   }
   return profile;
+}
+
+export function bundledNpmManifestPath(nodeExecutable, platform = process.platform) {
+  if (typeof nodeExecutable !== "string" || nodeExecutable.length === 0) {
+    throw new Error("Node executable path is required.");
+  }
+  if (platform === "win32") {
+    return win32.resolve(win32.dirname(nodeExecutable), "node_modules", "npm", "package.json");
+  }
+  return resolve(dirname(nodeExecutable), "..", "lib", "node_modules", "npm", "package.json");
 }
 
 export function validateActiveToolchain(actual, expected) {
