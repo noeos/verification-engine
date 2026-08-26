@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { dirname, resolve, win32 } from "node:path";
+import { posix, win32 } from "node:path";
 
 const exactVersionPattern = /^\d+\.\d+\.\d+$/u;
 const profileNamePattern = /^node-\d+-(?:current|latest|minimum|primary)$/u;
@@ -40,7 +40,14 @@ export function bundledNpmManifestPath(nodeExecutable, platform = process.platfo
   if (platform === "win32") {
     return win32.resolve(win32.dirname(nodeExecutable), "node_modules", "npm", "package.json");
   }
-  return resolve(dirname(nodeExecutable), "..", "lib", "node_modules", "npm", "package.json");
+  return posix.resolve(
+    posix.dirname(nodeExecutable),
+    "..",
+    "lib",
+    "node_modules",
+    "npm",
+    "package.json",
+  );
 }
 
 export function validateActiveToolchain(actual, expected) {
