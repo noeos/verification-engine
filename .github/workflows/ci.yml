@@ -33,7 +33,7 @@ jobs:
       contents: read
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -90,7 +90,7 @@ jobs:
             node: 24.19.0
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up Node ${{ matrix.node }}
@@ -112,7 +112,7 @@ jobs:
       NPM_CONFIG_ENGINE_STRICT: "false"
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up Node Current
@@ -128,7 +128,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up primary Node
