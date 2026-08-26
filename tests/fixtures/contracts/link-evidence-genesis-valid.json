@@ -1,0 +1,19 @@
+{
+  "schema": "urn:noeos:verification-engine:link-evidence:1",
+  "valid": true,
+  "value": {
+    "$schema": "urn:noeos:verification-engine:link-evidence:1",
+    "protocolVersion": 1,
+    "contextId": "example.context",
+    "sequenceId": "sequence-2026",
+    "position": 0,
+    "recordId": "record-0001",
+    "profile": { "id": "dev.noeos.jcs", "version": "1.0.0" },
+    "algorithm": "sha-256",
+    "normalizedByteLength": 2,
+    "contentDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "recordDigest": "1111111111111111111111111111111111111111111111111111111111111111",
+    "previous": { "kind": "none" },
+    "linkDigest": "2222222222222222222222222222222222222222222222222222222222222222"
+  }
+}

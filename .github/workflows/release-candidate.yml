@@ -30,7 +30,7 @@ jobs:
       id-token: write
     steps:
       - name: Check out exact candidate
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -52,25 +52,27 @@ jobs:
         if: github.ref_type == 'tag'
         run: git verify-tag "$GITHUB_REF_NAME"
       - name: Set up primary Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
           registry-url: https://registry.npmjs.org
-      - name: Pin npm and install from scratch
-        run: npm install --global npm@11.17.0 --ignore-scripts && npm ci --ignore-scripts --omit=optional
+      - name: Verify primary Node and bundled npm
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
+      - name: Install from reviewed lockfile
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
       - name: Run all local gates
-        run: npm run ci
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run ci
       - name: Build candidate tarballs
-        run: mkdir -p artifacts/release && npm pack --json --ignore-scripts --pack-destination artifacts/release --workspaces > artifacts/release/pack-manifest.json
+        run: mkdir -p artifacts/release && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- pack --json --ignore-scripts --pack-destination artifacts/release --workspaces > artifacts/release/pack-manifest.json
       - name: Generate checksums
         working-directory: artifacts/release
         run: sha256sum *.tgz > SHA256SUMS && sha512sum *.tgz > SHA512SUMS
       - name: Attest candidate tarballs
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: artifacts/release/*.tgz
       - name: Upload release evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-candidate-${{ github.sha }}
           path: |
@@ -90,22 +92,26 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Check out exact candidate policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Download reviewed candidate
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-candidate-${{ github.sha }}
           path: artifacts
       - name: Set up trusted-publishing runtime
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24.19.0
+          node-version-file: .node-version
           registry-url: https://registry.npmjs.org
-      - name: Pin trusted-publishing npm version
-        run: npm install --global npm@11.17.0 --ignore-scripts
+      - name: Verify trusted-publishing runtime
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Stage packages through OIDC
         shell: bash
         run: |
           set -euo pipefail
           for package in artifacts/release/*.tgz; do
-            npm stage publish "$package" --provenance --access public --tag next
+            node scripts/run-verified-package-manager.mjs --profile node-24-primary -- stage publish "$package" --provenance --access public --tag next
           done

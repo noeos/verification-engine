@@ -2,14 +2,14 @@
   "name": "@noeos/verification-engine-workspace",
   "version": "0.0.0-development",
   "private": true,
-  "description": "Reproducible workspace for the Noeos verification engine and CLI.",
+  "description": "Governed workspace for the Noeos verification engine and CLI.",
   "license": "Apache-2.0",
   "author": "Noeos contributors",
   "type": "module",
-  "packageManager": "npm@11.17.0",
+  "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=22.14.0 <23 || >=24.0.0 <25",
-    "npm": ">=11.5.1 <12"
+    "npm": ">=10.9.2 <12"
   },
   "workspaces": [
     "packages/engine",
@@ -19,11 +19,14 @@
     "api:check": "npm run build && api-extractor run --config packages/engine/api-extractor.json",
     "build": "node scripts/build.mjs",
     "build:clean": "node scripts/build.mjs --clean-only",
-    "ci": "npm run policy:check && npm run docs:check && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run api:check && npm run license:check && npm run security:audit && npm run security:signatures && npm run pack:check && npm run consumer:check && npm run reproducibility:check && npm run sbom",
+    "ci": "npm run toolchain:check -- --profile node-24-primary && npm run policy:check && npm run docs:check && npm run contracts:check && npm run vectors:check && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run api:check && npm run license:check && npm run security:audit && npm run security:signatures && npm run pack:check && npm run consumer:check && npm run reproducibility:check && npm run sbom",
     "consumer:check": "node scripts/check-consumers.mjs",
+    "contracts:check": "node scripts/check-contracts.mjs",
+    "contracts:generate": "node scripts/generate-contracts.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "github:audit": "node scripts/audit-github.mjs",
     "license:check": "node scripts/check-licenses.mjs",
     "lint": "eslint . --max-warnings 0",
     "pack:check": "node scripts/check-packages.mjs",
@@ -35,7 +38,9 @@
     "test": "npm run build && npm run test:compile && node .build/tests/tests/index.test.js",
     "test:compile": "tsc --project tsconfig.tests.json",
     "test:coverage": "npm run build && npm run test:compile && node --experimental-test-coverage --test-coverage-branches=98 --test-coverage-functions=98 --test-coverage-lines=98 --test-coverage-include='packages/*/dist/**/*.js' .build/tests/tests/index.test.js",
-    "typecheck": "tsc --project tsconfig.base.json && tsc --project tsconfig.tests.json --noEmit"
+    "toolchain:check": "node scripts/check-toolchain.mjs",
+    "typecheck": "tsc --project tsconfig.base.json && tsc --project tsconfig.tests.json --noEmit",
+    "vectors:check": "node scripts/check-vectors.mjs"
   },
   "repository": {
     "type": "git",

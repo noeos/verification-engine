@@ -1,0 +1,454 @@
+{
+  "$schema": "urn:noeos:verification-engine:diagnostic-catalog:1",
+  "version": "1.0.0",
+  "codes": [
+    {
+      "code": "INPUT_REQUIRED",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "INPUT_TYPE_INVALID",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "INPUT_LIMIT_EXCEEDED",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "IDENTIFIER_INVALID",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "VERSION_INVALID",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "JSON_SYNTAX_INVALID",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "JSON_DUPLICATE_KEY",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "JSON_VALUE_UNSUPPORTED",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "JSON_NUMBER_UNSAFE",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "UTF8_INVALID",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "NDJSON_LINE_EMPTY",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "NDJSON_LINE_TOO_LARGE",
+      "family": "input",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "PROFILE_UNKNOWN",
+      "family": "profile",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "PROFILE_VERSION_UNSUPPORTED",
+      "family": "profile",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "PROFILE_VERSION_CONFLICT",
+      "family": "profile",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "PROFILE_INPUT_KIND_MISMATCH",
+      "family": "profile",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "NORMALIZATION_FAILED",
+      "family": "profile",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "ALGORITHM_UNKNOWN",
+      "family": "algorithm",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "ALGORITHM_FORBIDDEN",
+      "family": "algorithm",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "ALGORITHM_VERIFY_ONLY",
+      "family": "algorithm",
+      "severity": "warning",
+      "exitCode": 0,
+      "since": "1.0.0"
+    },
+    {
+      "code": "DIGEST_ENCODING_INVALID",
+      "family": "algorithm",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "DIGEST_LENGTH_INVALID",
+      "family": "algorithm",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_MAGIC_INVALID",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_VERSION_UNSUPPORTED",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_KIND_UNKNOWN",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_FIELD_UNKNOWN",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_FIELD_MISSING",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_FIELD_DUPLICATE",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_FIELD_ORDER_INVALID",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_FIELD_TYPE_INVALID",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_LENGTH_INVALID",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FRAME_TRAILING_DATA",
+      "family": "frame",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "EVIDENCE_SCHEMA_UNKNOWN",
+      "family": "evidence",
+      "severity": "error",
+      "exitCode": 7,
+      "since": "1.0.0"
+    },
+    {
+      "code": "EVIDENCE_INVALID",
+      "family": "evidence",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "CONTENT_DIGEST_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "RECORD_DIGEST_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "RECORD_ID_DUPLICATE",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "CONTENT_DUPLICATE",
+      "family": "chain",
+      "severity": "warning",
+      "exitCode": 0,
+      "since": "1.0.0"
+    },
+    {
+      "code": "LINK_DIGEST_DUPLICATE",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "POSITION_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "PREVIOUS_LINK_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "LINK_DIGEST_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "CHAIN_CONFIGURATION_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "CHAIN_FORK",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "EXPECTED_COUNT_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "FINAL_LINK_MISMATCH",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "BOUNDARY_UNVERIFIED",
+      "family": "chain",
+      "severity": "warning",
+      "exitCode": 4,
+      "since": "1.0.0"
+    },
+    {
+      "code": "EMPTY_CHAIN_FORBIDDEN",
+      "family": "chain",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "RULE_FAILED",
+      "family": "rule",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "RULE_EXECUTION_FAILED",
+      "family": "rule",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "RULE_VERSION_CONFLICT",
+      "family": "rule",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "DIAGNOSTIC_LIMIT_REACHED",
+      "family": "operation",
+      "severity": "warning",
+      "exitCode": 0,
+      "since": "1.0.0"
+    },
+    {
+      "code": "INPUT_STREAM_FAILED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 3,
+      "since": "1.0.0"
+    },
+    {
+      "code": "OUTPUT_SINK_FAILED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 6,
+      "since": "1.0.0"
+    },
+    {
+      "code": "OPERATION_ABORTED",
+      "family": "operation",
+      "severity": "info",
+      "exitCode": 130,
+      "since": "1.0.0"
+    },
+    {
+      "code": "RESOURCE_BUDGET_EXCEEDED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 5,
+      "since": "1.0.0"
+    },
+    {
+      "code": "CONCURRENT_USE_FORBIDDEN",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "BUILDER_FINALIZED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "BUILDER_FAILED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 1,
+      "since": "1.0.0"
+    },
+    {
+      "code": "OBSERVER_FAILED",
+      "family": "operation",
+      "severity": "warning",
+      "exitCode": 0,
+      "since": "1.0.0"
+    },
+    {
+      "code": "IO_READ_FAILED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 6,
+      "since": "1.0.0"
+    },
+    {
+      "code": "IO_WRITE_FAILED",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 6,
+      "since": "1.0.0"
+    },
+    {
+      "code": "OUTPUT_EXISTS",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 6,
+      "since": "1.0.0"
+    },
+    {
+      "code": "INTERNAL_INVARIANT_BROKEN",
+      "family": "operation",
+      "severity": "error",
+      "exitCode": 70,
+      "since": "1.0.0"
+    }
+  ]
+}

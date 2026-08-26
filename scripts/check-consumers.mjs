@@ -40,17 +40,17 @@ try {
 
   await writeFile(
     resolve(temporaryDirectory, "esm.mjs"),
-    'import * as engine from "@noeos/verification-engine";\nimport * as cli from "@noeos/verification-engine-cli";\nif (Object.keys(engine).length !== 0 || Object.keys(cli).length !== 0) process.exit(1);\n',
+    'import { DIAGNOSTIC_CODES } from "@noeos/verification-engine";\nimport { SCHEMA_ASSETS } from "@noeos/verification-engine/schemas";\nimport { VECTOR_SET } from "@noeos/verification-engine/vectors";\nimport * as cli from "@noeos/verification-engine-cli";\nif (DIAGNOSTIC_CODES.length !== 64 || SCHEMA_ASSETS.length !== 5 || VECTOR_SET.version !== "1.0.0" || Object.keys(cli).length !== 0) process.exit(1);\n',
     "utf8",
   );
   await writeFile(
     resolve(temporaryDirectory, "common.cjs"),
-    'const engine = require("@noeos/verification-engine");\nif (Object.keys(engine).length !== 0) process.exit(1);\n',
+    'const engine = require("@noeos/verification-engine");\nconst schemas = require("@noeos/verification-engine/schemas");\nconst vectors = require("@noeos/verification-engine/vectors");\nif (engine.DIAGNOSTIC_CODES.length !== 64 || schemas.SCHEMA_ASSETS.length !== 5 || vectors.VECTOR_SET.files.length !== 3) process.exit(1);\n',
     "utf8",
   );
   await writeFile(
     resolve(temporaryDirectory, "consumer.ts"),
-    'import * as engine from "@noeos/verification-engine";\nvoid engine;\n',
+    'import { DIAGNOSTIC_CODES, type DiagnosticCode } from "@noeos/verification-engine";\nimport { type SchemaId } from "@noeos/verification-engine/schemas";\nconst code: DiagnosticCode = DIAGNOSTIC_CODES[0].code;\nconst schema: SchemaId = "urn:noeos:verification-engine:record-evidence:1";\nvoid code;\nvoid schema;\n',
     "utf8",
   );
   await writeFile(

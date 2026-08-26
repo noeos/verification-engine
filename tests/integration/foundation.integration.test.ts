@@ -8,7 +8,7 @@ import { test } from "node:test";
 
 const root = process.cwd();
 
-void test("ESM and CommonJS engine builds expose the same empty foundation surface", async () => {
+void test("ESM and CommonJS engine builds expose the same reviewed contract surface", async () => {
   const esm: unknown = await import(
     pathToFileURL(resolve(root, "packages/engine/dist/esm/index.js")).href
   );
@@ -17,8 +17,11 @@ void test("ESM and CommonJS engine builds expose the same empty foundation surfa
 
   assert.ok(typeof esm === "object" && esm !== null);
   assert.ok(typeof common === "object" && common !== null);
-  assert.deepEqual(Object.keys(esm), []);
-  assert.deepEqual(Object.keys(common), []);
+  assert.ok("DIAGNOSTIC_CODES" in esm);
+  assert.ok("DIAGNOSTIC_CODES" in common);
+  assert.deepEqual(Object.keys(esm), ["DIAGNOSTIC_CODES"]);
+  assert.deepEqual(Object.keys(common), ["DIAGNOSTIC_CODES"]);
+  assert.deepEqual(esm.DIAGNOSTIC_CODES, common.DIAGNOSTIC_CODES);
 });
 
 void test("CLI module is importable and has no premature public surface", async () => {

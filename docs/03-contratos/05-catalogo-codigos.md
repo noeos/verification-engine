@@ -2,7 +2,7 @@
 
 Estado: **normativo**
 
-Todos los códigos son ASCII `SCREAMING_SNAKE_CASE`. El mensaje humano no es contrato. Esta tabla es fuente de generación para tipos, schemas, referencia y exit mapping.
+Todos los códigos son ASCII `SCREAMING_SNAKE_CASE`. El mensaje humano no es contrato. [`contracts/diagnostic-codes.v1.json`](../../contracts/diagnostic-codes.v1.json) es la fuente estructurada de tipos, schemas, referencia y exit mapping; esta tabla normativa se comprueba contra ella en cada cambio.
 
 ## Entrada y límites
 

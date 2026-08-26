@@ -19,6 +19,7 @@ if (process.argv.includes("--clean-only")) {
   process.exitCode = 0;
 } else {
   const compiler = resolve(projectRoot, "node_modules/typescript/bin/tsc");
+  run(process.execPath, [resolve(projectRoot, "scripts/generate-contracts.mjs")]);
   run(process.execPath, [compiler, "--project", "packages/engine/tsconfig.esm.json"]);
   run(process.execPath, [compiler, "--project", "packages/engine/tsconfig.cjs.json"]);
   run(process.execPath, [compiler, "--project", "packages/cli/tsconfig.json"]);

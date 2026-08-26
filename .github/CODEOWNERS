@@ -6,7 +6,9 @@
 /packages/engine/src/hashing/ @ddavid07
 /packages/engine/src/normalization/ @ddavid07
 /packages/engine/schemas/ @ddavid07
+/contracts/ @ddavid07
 /vectors/ @ddavid07
+/reference/ @ddavid07
 
 # Supply chain and release
 /.github/workflows/ @ddavid07

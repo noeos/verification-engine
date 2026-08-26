@@ -30,11 +30,13 @@ Retención conservadora: al menos 10 años desde puesta en mercado o durante sop
 | L-CRA-03 | Vulnerability handling/reporting | cubierto técnicamente | policy, logs, simulacro | semestral |
 | L-CRA-04 | Soporte/updates | 5 años por major | support matrix, advisories | release |
 | L-CRA-05 | Conformidad/CE/docs si aplica | gate legal | expediente y declaración | antes de mercado |
+| L-CRA-06 | Vectores, esquemas y referencia independientes | implementado como control preventivo | manifest SHA-256, CI Node/Python, fixtures | cada cambio de protocolo |
 | L-PLD-01 | Responsabilidad software/updates | cubierto en ciclo | QA, support, warnings | anual |
 | L-DP-01 | Privacy by design | cubierto | data flow y controles | release |
 | L-DP-02 | Soporte/reportes con datos | organizativo | registro tratamiento/procedimiento | anual |
 | L-IP-01 | Derechos sobre código | DCO/licencia | Git, DCO, LICENSE | PR/release |
 | L-IP-02 | Licencias de terceros | inventario/SBOM | report y NOTICE | PR/release |
+| L-IP-03 | Procedencia de vectores externos | implementado | manifest con fuente, revisión y licencia | cada cambio de vector |
 | L-NIS2-01 | Aplicabilidad entidad | monitor | análisis jurídico | trimestral |
 | L-ENS-01 | Uso sector público | condicionado | perfil contractual si activa | por contrato |
 | L-EXP-01 | Exportación/sanciones | monitor | análisis de distribución | anual/cambio |

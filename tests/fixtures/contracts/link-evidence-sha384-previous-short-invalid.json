@@ -1,0 +1,22 @@
+{
+  "schema": "urn:noeos:verification-engine:link-evidence:1",
+  "valid": false,
+  "value": {
+    "$schema": "urn:noeos:verification-engine:link-evidence:1",
+    "protocolVersion": 1,
+    "contextId": "example.context",
+    "sequenceId": "sequence-2026",
+    "position": 1,
+    "recordId": "record-0001",
+    "profile": { "id": "dev.noeos.jcs", "version": "1.0.0" },
+    "algorithm": "sha-384",
+    "normalizedByteLength": 2,
+    "contentDigest": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "recordDigest": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "previous": {
+      "kind": "digest",
+      "value": "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "linkDigest": "333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"
+  }
+}

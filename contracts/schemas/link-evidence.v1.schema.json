@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:noeos:verification-engine:link-evidence:1",
+  "title": "Noeos Verification Engine Link Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "protocolVersion",
+    "contextId",
+    "sequenceId",
+    "position",
+    "recordId",
+    "profile",
+    "algorithm",
+    "normalizedByteLength",
+    "contentDigest",
+    "recordDigest",
+    "previous",
+    "linkDigest"
+  ],
+  "properties": {
+    "$schema": { "const": "urn:noeos:verification-engine:link-evidence:1" },
+    "protocolVersion": { "const": 1 },
+    "contextId": { "$ref": "#/$defs/identifier" },
+    "sequenceId": { "$ref": "#/$defs/identifier" },
+    "position": { "$ref": "#/$defs/safeInteger" },
+    "recordId": { "$ref": "#/$defs/identifier" },
+    "profile": { "$ref": "#/$defs/profile" },
+    "algorithm": { "$ref": "#/$defs/algorithm" },
+    "normalizedByteLength": { "$ref": "#/$defs/safeInteger" },
+    "contentDigest": { "$ref": "#/$defs/digest" },
+    "recordDigest": { "$ref": "#/$defs/digest" },
+    "previous": { "$ref": "#/$defs/previous" },
+    "linkDigest": { "$ref": "#/$defs/digest" }
+  },
+  "allOf": [
+    {
+      "if": { "type": "object", "properties": { "position": { "const": 0 } } },
+      "then": { "type": "object", "properties": { "previous": { "const": { "kind": "none" } } } },
+      "else": {
+        "type": "object",
+        "properties": { "previous": { "$ref": "#/$defs/previousDigest" } }
+      }
+    },
+    { "$ref": "#/$defs/digestLengths" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "maxLength": 128
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+          "maxLength": 256
+        }
+      }
+    },
+    "algorithm": { "enum": ["sha-256", "sha-384", "sha-512"] },
+    "safeInteger": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "digest": { "type": "string", "pattern": "^[0-9a-f]+$", "maxLength": 128 },
+    "previous": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "none" } }
+        },
+        { "$ref": "#/$defs/previousDigest" }
+      ]
+    },
+    "previousDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": { "kind": { "const": "digest" }, "value": { "$ref": "#/$defs/digest" } }
+    },
+    "digestLengths": {
+      "allOf": [
+        {
+          "if": { "type": "object", "properties": { "algorithm": { "const": "sha-256" } } },
+          "then": {
+            "type": "object",
+            "properties": {
+              "contentDigest": { "type": "string", "minLength": 64, "maxLength": 64 },
+              "recordDigest": { "type": "string", "minLength": 64, "maxLength": 64 },
+              "linkDigest": { "type": "string", "minLength": 64, "maxLength": 64 },
+              "previous": {
+                "oneOf": [
+                  { "const": { "kind": "none" } },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": { "const": "digest" },
+                      "value": { "type": "string", "minLength": 64, "maxLength": 64 }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": { "type": "object", "properties": { "algorithm": { "const": "sha-384" } } },
+          "then": {
+            "type": "object",
+            "properties": {
+              "contentDigest": { "type": "string", "minLength": 96, "maxLength": 96 },
+              "recordDigest": { "type": "string", "minLength": 96, "maxLength": 96 },
+              "linkDigest": { "type": "string", "minLength": 96, "maxLength": 96 },
+              "previous": {
+                "oneOf": [
+                  { "const": { "kind": "none" } },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": { "const": "digest" },
+                      "value": { "type": "string", "minLength": 96, "maxLength": 96 }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": { "type": "object", "properties": { "algorithm": { "const": "sha-512" } } },
+          "then": {
+            "type": "object",
+            "properties": {
+              "contentDigest": { "type": "string", "minLength": 128, "maxLength": 128 },
+              "recordDigest": { "type": "string", "minLength": 128, "maxLength": 128 },
+              "linkDigest": { "type": "string", "minLength": 128, "maxLength": 128 },
+              "previous": {
+                "oneOf": [
+                  { "const": { "kind": "none" } },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": { "const": "digest" },
+                      "value": { "type": "string", "minLength": 128, "maxLength": 128 }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

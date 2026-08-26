@@ -19,7 +19,7 @@ export function containsUnresolvedMarker(source) {
 }
 
 export function isAllowedPackedPath(path) {
-  return /^(?:CHANGELOG\.md|LICENSE|NOTICE|README\.md|package\.json|dist\/(?:cjs|esm|types)\/[a-z0-9./-]+|schemas\/[a-z0-9./-]+\.json)$/u.test(
+  return /^(?:CHANGELOG\.md|LICENSE|NOTICE|README\.md|package\.json|dist\/(?:cjs|esm|types)\/[a-z0-9./-]+|schemas\/[a-z0-9./-]+\.json|vectors\/[a-z0-9./-]+\.json)$/u.test(
     path,
   );
 }
@@ -34,4 +34,22 @@ export function isPinnedAction(reference) {
   }
   const separator = reference.lastIndexOf("@");
   return separator >= 0 && /^[0-9a-f]{40}$/u.test(reference.slice(separator + 1));
+}
+
+export function parseAllowedSshSigner(source) {
+  const lines = source
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+  if (lines.length !== 1) {
+    return undefined;
+  }
+  const match =
+    /^(\S+)\s+namespaces="([a-z0-9,-]+)"\s+(ssh-ed25519)\s+([A-Za-z0-9+/]+={0,2})(?:\s+[^\r\n]+)?$/u.exec(
+      lines[0],
+    );
+  if (match === null) {
+    return undefined;
+  }
+  return { key: `${match[3]} ${match[4]}`, namespace: match[2], principal: match[1] };
 }

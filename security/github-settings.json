@@ -4,23 +4,28 @@
     "allowedReferences": {
       "githubOwned": true,
       "patterns": [
-        "google/osv-scanner-action/osv-scanner-action@90b209d0ea55cea1da9fc0c4e65782cc6acb6e2e",
-        "ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a"
+        "google/osv-scanner-action/osv-scanner-action@6e4298ebc4db23e847df9b2e2de2939d6f066c67",
+        "ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc"
       ],
       "verified": false
     },
     "defaultWorkflowPermissions": "read",
-    "forkPullRequestApprovalRequired": true,
+    "enabled": true,
+    "forkPullRequestApprovalPolicy": "all_external_contributors",
+    "shaPinningRequired": true,
     "workflowsCanApprovePullRequests": false
   },
   "branchRules": {
     "main": {
       "allowDeletions": false,
       "allowForcePushes": false,
+      "allowedMergeMethods": ["squash"],
       "bypassActors": [],
       "dismissStaleReviews": true,
-      "enforceAdmins": true,
+      "enforcement": "active",
+      "requireCodeOwnerReview": false,
       "requireConversationResolution": true,
+      "requireExtraApprovalForUnattributedChanges": true,
       "requireLastPushApproval": false,
       "requireLinearHistory": true,
       "requirePullRequest": true,
@@ -30,51 +35,136 @@
         "Required · quality and policy",
         "Required · ubuntu-24.04 · Node 22.14.0",
         "Required · ubuntu-24.04 · Node 22.23.2",
-        "Required · ubuntu-24.04 · Node 24.19.0",
-        "Required · windows-2025 · Node 24.19.0",
-        "Required · macos-15 · Node 24.19.0",
+        "Required · ubuntu-24.04 · Node 24.20.0",
+        "Required · windows-2025 · Node 24.20.0",
+        "Required · macos-15 · Node 24.20.0",
         "Required · package reproducibility",
         "Required · dependency review",
         "Required · CodeQL",
         "Required · secret scan",
         "Required · OSV",
         "Required · npm audit and license inventory"
-      ]
+      ],
+      "strictRequiredChecks": true
     }
   },
+  "collaborators": [
+    {
+      "login": "ddavid07",
+      "role": "admin"
+    }
+  ],
   "defaultBranch": "main",
   "deleteBranchOnMerge": true,
   "environments": {
     "npm-staging": {
+      "canAdminsBypass": false,
       "deploymentTagPattern": "v*.*.*-rc.*",
       "preventSelfReview": false,
-      "requiredReviewers": ["@ddavid07"],
+      "requiredReviewers": ["ddavid07"],
       "selectedTagsOnly": true
     }
   },
   "features": {
     "automatedSecurityFixes": true,
     "dependabotAlerts": true,
+    "discussions": false,
+    "downloads": false,
     "issues": true,
+    "pages": false,
     "privateVulnerabilityReporting": true,
+    "projects": false,
     "secretScanning": true,
-    "secretScanningPushProtection": true
+    "secretScanningNonProviderPatterns": false,
+    "secretScanningPushProtection": true,
+    "secretScanningValidityChecks": false,
+    "wiki": false
   },
+  "labels": [
+    {
+      "color": "d73a4a",
+      "description": "Something isn't working",
+      "name": "bug"
+    },
+    {
+      "color": "0366d6",
+      "description": "Changes to reviewed dependencies or lockfiles.",
+      "name": "dependencies"
+    },
+    {
+      "color": "5319e7",
+      "description": "Reviewed capability proposal against product requirements.",
+      "name": "proposal"
+    },
+    {
+      "color": "b60205",
+      "description": "Changes affecting software supply-chain assurance.",
+      "name": "supply-chain"
+    }
+  ],
   "merge": {
+    "allowAutoMerge": false,
     "allowMergeCommit": false,
     "allowRebaseMerge": false,
-    "allowSquashMerge": true
+    "allowSquashMerge": true,
+    "allowUpdateBranch": false,
+    "squashCommitMessage": "COMMIT_MESSAGES",
+    "squashCommitTitle": "COMMIT_OR_PR_TITLE"
+  },
+  "organization": {
+    "defaultRepositoryPermission": "read",
+    "login": "noeos",
+    "membersCanChangeRepositoryVisibility": false,
+    "membersCanCreateRepositories": false,
+    "membersCanDeleteRepositories": false,
+    "membersCanForkPrivateRepositories": false,
+    "membersCanInviteOutsideCollaborators": true,
+    "repositoryDeployKeysEnabled": false,
+    "twoFactorAuthenticationRequired": true,
+    "webCommitSignoffRequired": true
+  },
+  "privateSurface": {
+    "actionsSecrets": 0,
+    "actionsVariables": 0,
+    "dependabotSecrets": 0,
+    "deployKeys": 0,
+    "environmentSecrets": 0,
+    "environmentVariables": 0,
+    "openCodeScanningAlerts": 0,
+    "openDependabotAlerts": 0,
+    "openSecretScanningAlerts": 0,
+    "pendingInvitations": 0,
+    "repositoryTeams": 0,
+    "webhooks": 0
   },
   "repository": "noeos/verification-engine",
+  "repositoryMetadata": {
+    "allowForking": true,
+    "archived": false,
+    "description": "Specifications and governed TypeScript workspace for deterministic data-integrity evidence, hash chains, and auditable verification.",
+    "disabled": false,
+    "homepage": null
+  },
   "tagRules": {
     "v*": {
       "allowDeletions": false,
+      "allowNonFastForwardUpdates": false,
       "allowUpdates": false,
       "bypassActors": [],
+      "enforcement": "active",
       "requireSignedTags": true
     }
   },
-  "topics": ["data-integrity", "nodejs", "typescript", "verification"],
+  "topics": [
+    "audit",
+    "cryptography",
+    "data-integrity",
+    "nodejs",
+    "offline-first",
+    "supply-chain-security",
+    "typescript",
+    "verification"
+  ],
   "visibility": "public",
   "webCommitSignoffRequired": true
 }

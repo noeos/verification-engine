@@ -11,15 +11,14 @@ Los vectores son el árbitro ejecutable de normalización, framing, digests y ev
 ```text
 vectors/
   manifest.json
-  normalization/
-  hashing/
-  records/
-  chains/
-  evidence/
-  invalid/
+  hashing.json
+  framing.json
+  invalid.json
+reference/
+  noeos_ve_reference.py
 ```
 
-`manifest.json` declara schema, versión del conjunto, licencia, archivos, SHA-256 de cada archivo y fuentes externas. Se publica en el paquete bajo export `vectors` y como artifact de release.
+`manifest.json` declara schema, versión del conjunto, licencia, archivos, SHA-256 de cada archivo y fuentes externas. Se publica en el paquete bajo export `vectors` y como artifact de release. Los primeros archivos cierran hash, framing y fallos estructurales; normalización, registros, cadenas, evidencia completa y compatibilidad añadirán sus propios ficheros al implementar esas capacidades, sin alterar casos válidos existentes.
 
 ## Categorías mínimas
 
@@ -76,9 +75,11 @@ Cada caso contiene:
 - diagnósticos y estado esperados;
 - fuente/licencia si deriva de tercero.
 
+Para no convertir los límites de framing en miles de caracteres opacos, un campo de bytes de un vector puede declarar `repeat`: un entero entre 1 y 1.000.000 que repite su `value` hexadecimal antes de formar el frame. Es una notación del *fixture*, no una extensión del protocolo ni de la API. Los bytes expandidos, el hex completo del frame y su digest se conservan y verifican como resultado esperado.
+
 ## Independencia
 
-Antes de 1.0.0, al menos una herramienta independiente —implementación pequeña de referencia o segundo lenguaje— debe reproducir los vectores centrales. No comparte serializador ni framing con el producto. Las discrepancias se resuelven contra especificación y fuentes, no por mayoría.
+La referencia `reference/noeos_ve_reference.py` usa únicamente biblioteca estándar de Python y no importa código TypeScript, generadores ni módulos del motor. Reproduce hash, framing y errores estructurales centrales. No comparte serializador ni framing con el producto. Las discrepancias se resuelven contra especificación y fuentes, no por mayoría.
 
 ## Cambios
 

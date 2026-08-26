@@ -2,6 +2,10 @@
 
 Estado: **normativo**
 
+## Fuente ejecutable
+
+Los esquemas canónicos viven en `contracts/schemas/` y usan JSON Schema Draft 2020-12. La copia de `packages/engine/schemas/` se genera de forma determinista, se empaqueta como activo público y no se edita manualmente. Los cinco esquemas se compilan en modo estricto, sin excepciones de tipos, y se prueban con fixtures válidos e inválidos para cada variante de digest relevante. El manifest publicado de vectores también debe validar contra su propio esquema.
+
 ## Reglas JSON
 
 - Codificación UTF-8 estricta sin BOM para archivos nuevos.
@@ -23,7 +27,7 @@ urn:noeos:verification-engine:diagnostic:1
 urn:noeos:verification-engine:vector-set:1
 ```
 
-Los JSON Schema se distribuirán en el paquete y repositorio. `$id` usa la URN; una copia navegable puede publicarse en noeos.dev sin cambiar identidad.
+Los JSON Schema se distribuyen en el paquete y repositorio. `$id` usa la URN; una copia navegable puede publicarse en noeos.dev sin cambiar identidad.
 
 ## `RecordEvidence` v1
 
@@ -71,7 +75,11 @@ Para posición mayor que cero, `previous` es `{ "kind": "digest", "value": "<hex
 
 ## `ChainSummaryEvidence` v1
 
-Incluye `sequenceId`, perfil, algoritmo, `count`, `firstPosition`, `lastPosition`, `firstLinkDigest`, `finalLinkDigest` y `boundaries`. Para cadena vacía, `count` es cero y no existen digests/posiciones; solo puede producirse si `allowEmpty` fue explícito.
+Incluye contexto, `sequenceId`, perfil, algoritmo, `count`, fronteras, estado y resumen de diagnósticos. Para cadena no vacía exige `firstPosition`, `lastPosition`, `firstLinkDigest` y `finalLinkDigest`. Para cadena vacía, `count` es cero y esos campos no existen; solo puede producirse si `allowEmpty` fue explícito.
+
+## `Diagnostic` v1
+
+Un diagnóstico incluye `$schema`, código estable, severidad, fase y `messageKey`. Puede incluir ruta segura, identidad opaca, posición, `causeCode` y un mapa pequeño de detalles escalares redactados. No admite payloads, objetos anidados, stacks, rutas absolutas ni campos desconocidos.
 
 ## NDJSON
 

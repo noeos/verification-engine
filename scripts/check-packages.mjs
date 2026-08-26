@@ -28,8 +28,16 @@ const workspaces = [
       "dist/cjs/index.js",
       "dist/cjs/package.json",
       "dist/esm/index.js",
+      "dist/esm/schemas.js",
+      "dist/esm/vectors.js",
       "dist/types/index.d.ts",
+      "dist/types/schemas.d.ts",
+      "dist/types/vectors.d.ts",
       "package.json",
+      "schemas/record-evidence.v1.schema.json",
+      "schemas/vector-set.v1.schema.json",
+      "vectors/manifest.json",
+      "vectors/framing.json",
     ],
   },
   {
@@ -91,7 +99,9 @@ for (const workspace of workspaces) {
     throw new Error(`${workspace.name} unexpectedly became publishable`);
   }
   if (manifest.bin !== undefined) {
-    throw new Error(`${workspace.name} must not expose a binary in the foundation phase`);
+    throw new Error(
+      `${workspace.name} must not expose a binary before its release contract allows it`,
+    );
   }
 }
 
