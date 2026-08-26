@@ -1,0 +1,106 @@
+{
+  "admissions": [
+    {
+      "license": "Apache-2.0",
+      "name": "@cyclonedx/cyclonedx-npm",
+      "necessity": "Generate standards-based CycloneDX 1.7 SBOM evidence from the npm lockfile.",
+      "replacement": "A reviewed deterministic generator using the CycloneDX schema.",
+      "runtime": false,
+      "source": "https://github.com/CycloneDX/cyclonedx-node-npm",
+      "version": "6.0.1"
+    },
+    {
+      "license": "MIT",
+      "name": "@eslint/js",
+      "necessity": "Provide the maintained baseline rules for ESLint flat configuration.",
+      "replacement": "Versioned local lint rules or a compatible maintained linter.",
+      "runtime": false,
+      "source": "https://github.com/eslint/eslint",
+      "version": "10.0.1"
+    },
+    {
+      "license": "MIT",
+      "name": "@microsoft/api-extractor",
+      "necessity": "Detect reviewed public TypeScript API drift before release.",
+      "replacement": "A deterministic declaration-surface comparator.",
+      "runtime": false,
+      "source": "https://github.com/microsoft/rushstack",
+      "version": "7.59.0"
+    },
+    {
+      "license": "MIT",
+      "name": "@types/node",
+      "necessity": "Type-check Node 24 APIs used by tests and repository automation.",
+      "replacement": "The maintained Node type declarations matching the primary LTS line.",
+      "runtime": false,
+      "source": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+      "version": "24.13.3"
+    },
+    {
+      "license": "MIT",
+      "name": "ajv",
+      "necessity": "Validate generated SPDX evidence against the vendored canonical JSON Schema.",
+      "replacement": "A maintained JSON Schema 2020-12 validator with equivalent strictness.",
+      "runtime": false,
+      "source": "https://github.com/ajv-validator/ajv",
+      "version": "8.20.0"
+    },
+    {
+      "license": "MIT",
+      "name": "eslint",
+      "necessity": "Enforce static correctness and unsafe-TypeScript prohibitions.",
+      "replacement": "A maintained TypeScript-aware static analyzer with equivalent rules.",
+      "runtime": false,
+      "source": "https://github.com/eslint/eslint",
+      "version": "10.9.1"
+    },
+    {
+      "license": "MIT",
+      "name": "fast-check",
+      "necessity": "Run deterministic property-based tests required by the quality plan.",
+      "replacement": "Audited local generators and shrinking or a maintained equivalent.",
+      "runtime": false,
+      "source": "https://github.com/dubzzz/fast-check",
+      "version": "4.9.0"
+    },
+    {
+      "license": "MIT",
+      "name": "globals",
+      "necessity": "Define reviewed Node globals for ESLint flat configuration.",
+      "replacement": "A small versioned local global-name set.",
+      "runtime": false,
+      "source": "https://github.com/sindresorhus/globals",
+      "version": "17.11.0"
+    },
+    {
+      "license": "MIT",
+      "name": "prettier",
+      "necessity": "Provide deterministic cross-platform formatting checks.",
+      "replacement": "A maintained deterministic formatter or reviewed local formatting rules.",
+      "runtime": false,
+      "source": "https://github.com/prettier/prettier",
+      "version": "3.9.6"
+    },
+    {
+      "license": "Apache-2.0",
+      "name": "typescript",
+      "necessity": "Compile and strictly type-check the product and tests.",
+      "replacement": "A reviewed TypeScript compiler release compatible with supported Node lines.",
+      "runtime": false,
+      "source": "https://github.com/microsoft/TypeScript",
+      "version": "5.9.3"
+    },
+    {
+      "license": "MIT",
+      "name": "typescript-eslint",
+      "necessity": "Apply type-aware ESLint rules to strict TypeScript source.",
+      "replacement": "Maintained equivalent type-aware lint rules.",
+      "runtime": false,
+      "source": "https://github.com/typescript-eslint/typescript-eslint",
+      "version": "8.68.0"
+    }
+  ],
+  "approvedBy": "@ddavid07",
+  "policyVersion": 1,
+  "reviewedAt": "2026-08-26"
+}

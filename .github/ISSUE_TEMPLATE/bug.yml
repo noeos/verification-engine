@@ -1,0 +1,50 @@
+name: Defect report
+description: Report a reproducible non-security defect using synthetic data.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Security vulnerabilities must use private vulnerability reporting. Never include real customer, tax, credential, or personal data.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Identify the exact version, tarball, or commit tested.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+      description: Describe the result, including structured codes and synthetic input when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide deterministic steps and a synthetic payload.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node, npm, OS, architecture, module system, and relevant limits.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data safety
+      options:
+        - label: This report contains no secrets, vulnerabilities, personal data, or real customer records.
+          required: true

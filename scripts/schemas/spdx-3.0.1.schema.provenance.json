@@ -1,0 +1,11 @@
+{
+  "artifact": "spdx-3.0.1.schema.json",
+  "copyright": "SPDX Workgroup contributors",
+  "fetchedAt": "2026-08-26",
+  "license": "Community-Spec-1.0",
+  "normalization": "Source CRLF converted to LF with one terminal LF; content otherwise unchanged",
+  "sha256": "571dd17d52ad567cb5b44c2fdf0c57f013d08584f00e4f30b4f744dcca0fbb4c",
+  "source": "https://spdx.org/schema/3.0.1/spdx-json-schema.json",
+  "sourceSha256": "582c64e809d5b3ef9bd0c4de13a32391b47b0284a3e8d199569fb96f649234b1",
+  "version": "3.0.1"
+}

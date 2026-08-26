@@ -1,0 +1,45 @@
+{
+  "name": "@noeos/verification-engine",
+  "version": "0.0.0-development",
+  "private": true,
+  "description": "Deterministic, offline-first verification engine for Noeos protocols.",
+  "license": "Apache-2.0",
+  "author": "Noeos contributors",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.14.0 <23 || >=24.0.0 <25"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "schemas/**/*.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noeos/verification-engine.git",
+    "directory": "packages/engine"
+  },
+  "bugs": {
+    "url": "https://github.com/noeos/verification-engine/issues"
+  },
+  "homepage": "https://github.com/noeos/verification-engine#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}

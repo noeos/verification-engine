@@ -1,0 +1,29 @@
+# Dependencies and package-manager state
+node_modules/
+.npm/
+
+# Generated build and test output
+.build/
+dist/
+coverage/
+temp/
+tmp/
+*.tgz
+packages/*/LICENSE
+packages/*/NOTICE
+
+# Generated reports and evidence
+artifacts/
+benchmarks/reports/*
+!benchmarks/reports/.gitkeep
+security/audits/generated/
+
+# Logs and local environment
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

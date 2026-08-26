@@ -1,0 +1,46 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    groups:
+      eslint:
+        patterns:
+          - "@eslint/*"
+          - eslint
+          - typescript-eslint
+      security-evidence:
+        patterns:
+          - "@cyclonedx/*"
+          - ajv
+      typescript:
+        patterns:
+          - "@types/node"
+          - typescript
+    labels:
+      - dependencies
+      - supply-chain
+    commit-message:
+      prefix: "build(deps)"
+    rebase-strategy: disabled
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - supply-chain
+    commit-message:
+      prefix: "ci(actions)"
+    rebase-strategy: disabled

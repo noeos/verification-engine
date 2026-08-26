@@ -1,0 +1,11 @@
+Noeos Verification Engine
+Copyright 2026 Noeos contributors
+
+This product includes software developed by Noeos contributors.
+
+Third-party development tools and their licenses are recorded in
+security/dependency-inventory.json and in the generated release license report.
+
+The vendored SPDX 3.0.1 JSON Schema is published by the SPDX Workgroup under
+the Community Specification License 1.0. Its exact source and digest are
+recorded beside the schema.

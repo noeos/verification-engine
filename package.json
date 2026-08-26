@@ -1,0 +1,61 @@
+{
+  "name": "@noeos/verification-engine-workspace",
+  "version": "0.0.0-development",
+  "private": true,
+  "description": "Reproducible workspace for the Noeos verification engine and CLI.",
+  "license": "Apache-2.0",
+  "author": "Noeos contributors",
+  "type": "module",
+  "packageManager": "npm@11.17.0",
+  "engines": {
+    "node": ">=22.14.0 <23 || >=24.0.0 <25",
+    "npm": ">=11.5.1 <12"
+  },
+  "workspaces": [
+    "packages/engine",
+    "packages/cli"
+  ],
+  "scripts": {
+    "api:check": "npm run build && api-extractor run --config packages/engine/api-extractor.json",
+    "build": "node scripts/build.mjs",
+    "build:clean": "node scripts/build.mjs --clean-only",
+    "ci": "npm run policy:check && npm run docs:check && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run api:check && npm run license:check && npm run security:audit && npm run security:signatures && npm run pack:check && npm run consumer:check && npm run reproducibility:check && npm run sbom",
+    "consumer:check": "node scripts/check-consumers.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "license:check": "node scripts/check-licenses.mjs",
+    "lint": "eslint . --max-warnings 0",
+    "pack:check": "node scripts/check-packages.mjs",
+    "policy:check": "node scripts/check-policies.mjs",
+    "reproducibility:check": "node scripts/check-reproducibility.mjs",
+    "sbom": "node scripts/generate-sbom.mjs",
+    "security:audit": "npm audit --audit-level=moderate --ignore-scripts --omit=optional",
+    "security:signatures": "npm audit signatures --omit=optional",
+    "test": "npm run build && npm run test:compile && node .build/tests/tests/index.test.js",
+    "test:compile": "tsc --project tsconfig.tests.json",
+    "test:coverage": "npm run build && npm run test:compile && node --experimental-test-coverage --test-coverage-branches=98 --test-coverage-functions=98 --test-coverage-lines=98 --test-coverage-include='packages/*/dist/**/*.js' .build/tests/tests/index.test.js",
+    "typecheck": "tsc --project tsconfig.base.json && tsc --project tsconfig.tests.json --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noeos/verification-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/noeos/verification-engine/issues"
+  },
+  "homepage": "https://github.com/noeos/verification-engine#readme",
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "6.0.1",
+    "@eslint/js": "10.0.1",
+    "@microsoft/api-extractor": "7.59.0",
+    "@types/node": "24.13.3",
+    "ajv": "8.20.0",
+    "eslint": "10.9.1",
+    "fast-check": "4.9.0",
+    "globals": "17.11.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.68.0"
+  }
+}
