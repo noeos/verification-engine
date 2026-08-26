@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { lstat, readFile, readdir } from "node:fs/promises";
-import { dirname, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
@@ -83,6 +83,16 @@ export function listTarGzEntries(archive) {
     offset += 512 + Math.ceil(size / 512) * 512;
   }
   return entries;
+}
+
+export function isPathInside(parent, candidate) {
+  const pathFromParent = relative(parent, candidate);
+  return (
+    pathFromParent.length > 0 &&
+    pathFromParent !== ".." &&
+    !pathFromParent.startsWith(`..${sep}`) &&
+    !isAbsolute(pathFromParent)
+  );
 }
 
 export async function readJson(path) {

@@ -3,7 +3,7 @@
 import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { assertProjectRoot, projectRoot, run, stableJson } from "./project.mjs";
+import { assertProjectRoot, isPathInside, projectRoot, run, stableJson } from "./project.mjs";
 
 const generatedTargets = [
   resolve(projectRoot, ".build"),
@@ -44,7 +44,7 @@ if (process.argv.includes("--clean-only")) {
 
 async function clean() {
   for (const target of generatedTargets) {
-    if (!target.startsWith(`${projectRoot}/`)) {
+    if (!isPathInside(projectRoot, target)) {
       throw new Error(`Unsafe build target: ${target}`);
     }
     await rm(target, { force: true, recursive: true });

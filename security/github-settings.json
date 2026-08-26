@@ -4,7 +4,6 @@
     "allowedReferences": {
       "githubOwned": true,
       "patterns": [
-        "gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7",
         "google/osv-scanner-action/osv-scanner-action@90b209d0ea55cea1da9fc0c4e65782cc6acb6e2e",
         "ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a"
       ],

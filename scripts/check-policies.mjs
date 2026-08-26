@@ -87,6 +87,22 @@ if (stableJson(admittedVersions) !== stableJson(rootManifest.devDependencies)) {
   failures.push("direct development dependencies do not match the reviewed admission inventory");
 }
 
+const admittedCiTools = admission.ciTools ?? [];
+if (admittedCiTools.length !== 1 || admittedCiTools[0].name !== "gitleaks") {
+  failures.push("the reviewed CI tool inventory must contain exactly Gitleaks");
+} else {
+  const [gitleaks] = admittedCiTools;
+  if (!isExactVersion(gitleaks.version)) {
+    failures.push(`Gitleaks does not use an exact version: ${gitleaks.version}`);
+  }
+  if (!/^https:\/\/github\.com\/gitleaks\/gitleaks\/releases\/download\//u.test(gitleaks.archive)) {
+    failures.push("Gitleaks must be downloaded from its official GitHub release");
+  }
+  if (!/^[0-9a-f]{64}$/u.test(gitleaks.sha256)) {
+    failures.push("Gitleaks must have a reviewed SHA-256 archive digest");
+  }
+}
+
 const lock = await readJson(resolve(projectRoot, "package-lock.json"));
 requireValue(lock.lockfileVersion, 3, "package-lock.json must use lockfile version 3");
 requireValue(lock.name, rootManifest.name, "package-lock.json has an unexpected root name");
@@ -157,6 +173,18 @@ const workflowFiles = files.filter(
   (file) =>
     toPosix(file).startsWith(".github/workflows/") && [".yml", ".yaml"].includes(extname(file)),
 );
+const securityWorkflowSource = await readFile(
+  resolve(projectRoot, ".github/workflows/security.yml"),
+  "utf8",
+);
+for (const tool of admittedCiTools) {
+  if (
+    !securityWorkflowSource.includes(tool.archive) ||
+    !securityWorkflowSource.includes(tool.sha256)
+  ) {
+    failures.push(`${tool.name} workflow inputs do not match the reviewed CI tool inventory`);
+  }
+}
 const thirdPartyActionReferences = new Set();
 for (const workflow of workflowFiles) {
   const source = await readFile(workflow, "utf8");
