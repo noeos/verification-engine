@@ -1,0 +1,56 @@
+{
+  "cases": [
+    {
+      "id": "INVALID-DUPLICATE-TAG",
+      "kind": "invalid",
+      "requirement": "CRY-002",
+      "source": "Noeos-VE-Protocol-1",
+      "frame": {
+        "kind": "content",
+        "fields": [
+          { "tag": 1, "type": "utf8", "value": "sha-256" },
+          { "tag": 1, "type": "utf8", "value": "sha-256" }
+        ]
+      },
+      "expectedCode": "FRAME_FIELD_DUPLICATE"
+    },
+    {
+      "id": "INVALID-DESCENDING-TAG",
+      "kind": "invalid",
+      "requirement": "CRY-002",
+      "source": "Noeos-VE-Protocol-1",
+      "frame": {
+        "kind": "content",
+        "fields": [
+          { "tag": 2, "type": "utf8", "value": "b" },
+          { "tag": 1, "type": "utf8", "value": "a" }
+        ]
+      },
+      "expectedCode": "FRAME_FIELD_ORDER_INVALID"
+    },
+    {
+      "id": "INVALID-BYTES-UPPERCASE",
+      "kind": "invalid",
+      "requirement": "CRY-002",
+      "source": "Noeos-VE-Protocol-1",
+      "frame": { "kind": "content", "fields": [{ "tag": 1, "type": "bytes", "value": "AA" }] },
+      "expectedCode": "DIGEST_ENCODING_INVALID"
+    },
+    {
+      "id": "INVALID-NONE-WITH-VALUE",
+      "kind": "invalid",
+      "requirement": "CRY-002",
+      "source": "Noeos-VE-Protocol-1",
+      "frame": { "kind": "link", "fields": [{ "tag": 1, "type": "none", "value": "" }] },
+      "expectedCode": "FRAME_FIELD_TYPE_INVALID"
+    },
+    {
+      "id": "INVALID-ODD-HEX",
+      "kind": "invalid",
+      "requirement": "CRY-002",
+      "source": "Noeos-VE-Protocol-1",
+      "frame": { "kind": "content", "fields": [{ "tag": 1, "type": "bytes", "value": "0" }] },
+      "expectedCode": "DIGEST_ENCODING_INVALID"
+    }
+  ]
+}

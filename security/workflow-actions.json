@@ -21,6 +21,10 @@
       "version": "7.0.0"
     },
     {
+      "reference": "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+      "version": "6.3.0"
+    },
+    {
       "reference": "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "version": "7.0.1"
     },

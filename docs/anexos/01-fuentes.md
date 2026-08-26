@@ -17,6 +17,7 @@ Consulta: **2026-08-26**
 
 - [NIST FIPS 180-4 — Secure Hash Standard](https://csrc.nist.gov/pubs/fips/180-4/upd1/final)
 - [Node.js Crypto API](https://nodejs.org/api/crypto.html)
+- [Python 3.13.15](https://www.python.org/downloads/release/python-31315/)
 
 NIST anunció revisión de FIPS 180-4; el proyecto vigila la sucesora antes de cada release.
 
@@ -37,6 +38,7 @@ NIST anunció revisión de FIPS 180-4; el proyecto vigila la sucesora antes de c
 - [Cyber Resilience Act, Reglamento (UE) 2024/2847](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng)
 - [Resumen CRA de la Comisión](https://digital-strategy.ec.europa.eu/en/policies/cra-summary)
 - [CRA y open source](https://digital-strategy.ec.europa.eu/en/policies/cra-open-source)
+- [Guía de aplicación CRA de la Comisión, julio de 2026](https://digital-strategy.ec.europa.eu/en/library/commission-publishes-new-guidance-support-timely-cyber-resilience-act-implementation)
 - [Responsabilidad por productos, Directiva (UE) 2024/2853](https://eur-lex.europa.eu/eli/dir/2024/2853/oj/eng)
 - [RGPD, Reglamento (UE) 2016/679](https://eur-lex.europa.eu/eli/reg/2016/679/oj)
 - [LOPDGDD, LO 3/2018](https://www.boe.es/buscar/act.php?id=BOE-A-2018-16673)

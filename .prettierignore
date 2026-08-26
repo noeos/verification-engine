@@ -5,5 +5,6 @@ dist
 docs
 node_modules
 package-lock.json
+packages/engine/etc/*.api.md
 scripts/schemas/spdx-3.0.1.schema.json
 security/audits/generated

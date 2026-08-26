@@ -42,16 +42,22 @@ jobs:
         with:
           node-version-file: .node-version
           registry-url: https://registry.npmjs.org
+      - name: Set up independent reference Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.13.15
       - name: Verify primary Node and bundled npm
         run: node scripts/check-toolchain.mjs --profile node-24-primary
+      - name: Verify independent reference runtime
+        run: node scripts/check-reference-toolchain.mjs
       - name: Install from reviewed lockfile
         run: npm ci --ignore-scripts --omit=optional
       - name: Repository and documentation policy
-        run: npm run policy:check && npm run docs:check
+        run: npm run policy:check && npm run docs:check && npm run contracts:check && npm run vectors:check
       - name: Formatting and lint
-        run: npm run format:check && npm run lint
+        run: npm run build && npm run format:check && npm run lint
       - name: Strict TypeScript and tests
-        run: npm run typecheck && npm run test:coverage
+        run: npm run build && npm run typecheck && npm run test:coverage
       - name: Public API report
         run: npm run api:check
       - name: Licenses and package boundary
@@ -103,10 +109,16 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           registry-url: https://registry.npmjs.org
+      - name: Set up independent reference Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.13.15
       - name: Verify Node and bundled npm
         run: node scripts/check-toolchain.mjs --profile ${{ matrix.profile }}
+      - name: Verify independent reference runtime
+        run: node scripts/check-reference-toolchain.mjs
       - name: Install and verify consumers
-        run: npm ci --ignore-scripts --omit=optional && npm run typecheck && npm test && npm run consumer:check
+        run: npm ci --ignore-scripts --omit=optional && npm run build && npm run typecheck && npm test && npm run consumer:check
 
   node-current:
     name: Informational · Node 26 Current

@@ -22,7 +22,7 @@ Por prudencia, no se presume la exclusión de software libre desarrollado fuera 
 
 ### Cyber Resilience Act — Reglamento (UE) 2024/2847
 
-Fuente oficial: [EUR-Lex](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng). Entró en vigor el 10-12-2024; reporting del artículo 14 aplica desde 11-09-2026 y disposiciones principales desde 11-12-2027 según la [Comisión Europea](https://digital-strategy.ec.europa.eu/en/policies/cra-summary).
+Fuente oficial: [EUR-Lex](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng). Entró en vigor el 10-12-2024; reporting del artículo 14 aplica desde 11-09-2026 y disposiciones principales desde 11-12-2027 según la [Comisión Europea](https://digital-strategy.ec.europa.eu/en/policies/cra-summary). La guía de la Comisión revisada en julio de 2026 se incorpora como fuente de vigilancia para clasificación de FOSS comercial.
 
 Si el producto queda dentro del ámbito y Noeos es fabricante, el plan DEBE cubrir:
 

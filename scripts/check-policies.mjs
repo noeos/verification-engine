@@ -30,6 +30,9 @@ const cliManifest = await readJson(resolve(projectRoot, "packages/cli/package.js
 const admission = await readJson(resolve(projectRoot, "security/dependency-admission.json"));
 const githubSettings = await readJson(resolve(projectRoot, "security/github-settings.json"));
 const runtimeToolchain = await readJson(resolve(projectRoot, "security/runtime-toolchain.json"));
+const referenceToolchain = await readJson(
+  resolve(projectRoot, "security/reference-toolchain.json"),
+);
 const workflowActions = await readJson(resolve(projectRoot, "security/workflow-actions.json"));
 const schemaProvenance = await readJson(
   resolve(projectRoot, "scripts/schemas/spdx-3.0.1.schema.provenance.json"),
@@ -47,6 +50,23 @@ requireValue(
   "runtime versions must come from the official Node distribution index",
 );
 requireValue(runtimeToolchain.reviewedAt, "2026-08-26", "runtime review date is unexpected");
+requireValue(
+  referenceToolchain.python,
+  "3.13.15",
+  "independent reference Python must be exactly pinned",
+);
+requireValue(
+  referenceToolchain.reviewedAt,
+  "2026-08-26",
+  "independent reference runtime review date is unexpected",
+);
+if (
+  !/^https:\/\/www\.python\.org\/downloads\/release\/python-31315\/$/u.test(
+    referenceToolchain.source ?? "",
+  )
+) {
+  failures.push("independent reference Python must use its official reviewed source");
+}
 requireValue(
   rootManifest.packageManager,
   `npm@${primaryToolchain?.npm ?? "invalid"}`,
@@ -363,8 +383,11 @@ const requiredPaths = [
   "security/dependency-inventory.json",
   "security/allowed-signers",
   "security/runtime-toolchain.json",
+  "security/reference-toolchain.json",
   "security/workflow-actions.json",
-  "vectors/.gitkeep",
+  "contracts/diagnostic-codes.v1.json",
+  "vectors/manifest.json",
+  "reference/noeos_ve_reference.py",
 ];
 for (const path of requiredPaths) {
   if (!files.some((file) => relative(projectRoot, file) === path)) {

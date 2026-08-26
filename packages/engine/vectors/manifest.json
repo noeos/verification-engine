@@ -1,0 +1,40 @@
+{
+  "$schema": "urn:noeos:verification-engine:vector-set:1",
+  "version": "1.0.0",
+  "protocolVersion": 1,
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "path": "framing.json",
+      "category": "framing",
+      "caseCount": 6,
+      "sha256": "bacc590419dcee44ad0fa3e707d00a9bf322ac51243efc0a0418821fc6c92ea8"
+    },
+    {
+      "path": "hashing.json",
+      "category": "hashing",
+      "caseCount": 6,
+      "sha256": "8722eba9ec01c80bdfa5f08fe13bc4c010b4712f61f417e5e2f748a8cbad44b3"
+    },
+    {
+      "path": "invalid.json",
+      "category": "invalid",
+      "caseCount": 5,
+      "sha256": "05d098aa80412ce8d85aafea1b4ce4add53381e2fe4a4cda1cad88d9fa286fa6"
+    }
+  ],
+  "sources": [
+    {
+      "id": "FIPS-180-4",
+      "url": "https://csrc.nist.gov/pubs/fips/180-4/upd1/final",
+      "license": "US Government work",
+      "revision": "FIPS PUB 180-4"
+    },
+    {
+      "id": "Noeos-VE-Protocol-1",
+      "url": "https://github.com/noeos/verification-engine/blob/main/docs/04-normalizacion-criptografia/02-hash-framing.md",
+      "license": "Apache-2.0",
+      "revision": "protocol-1"
+    }
+  ]
+}

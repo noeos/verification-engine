@@ -1,0 +1,16 @@
+{
+  "schema": "urn:noeos:verification-engine:chain-summary:1",
+  "valid": true,
+  "value": {
+    "$schema": "urn:noeos:verification-engine:chain-summary:1",
+    "protocolVersion": 1,
+    "contextId": "example.context",
+    "sequenceId": "sequence-2026",
+    "profile": { "id": "dev.noeos.jcs", "version": "1.0.0" },
+    "algorithm": "sha-256",
+    "count": 0,
+    "boundaries": { "start": "not-applicable", "end": "not-applicable" },
+    "status": "valid",
+    "diagnostics": { "errors": 0, "warnings": 0, "info": 0, "truncated": false }
+  }
+}

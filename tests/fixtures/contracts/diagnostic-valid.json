@@ -1,0 +1,13 @@
+{
+  "schema": "urn:noeos:verification-engine:diagnostic:1",
+  "valid": true,
+  "value": {
+    "$schema": "urn:noeos:verification-engine:diagnostic:1",
+    "code": "FRAME_LENGTH_INVALID",
+    "severity": "error",
+    "phase": "input",
+    "messageKey": "frame.length.invalid",
+    "path": "/frame/length",
+    "details": { "actual": 17, "limit": 16 }
+  }
+}

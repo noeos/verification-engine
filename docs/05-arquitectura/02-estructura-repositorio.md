@@ -15,6 +15,7 @@ verification-engine/
 ├── packages/
 │   ├── engine/
 │   │   ├── src/
+│   │   │   ├── contracts/
 │   │   │   ├── api/
 │   │   │   ├── domain/
 │   │   │   ├── validation/
@@ -38,7 +39,13 @@ verification-engine/
 │       │   └── main.ts
 │       ├── package.json
 │       └── tsconfig.json
+├── contracts/
+│   ├── diagnostic-codes.v1.json
+│   └── schemas/
 ├── vectors/
+│   └── manifest.json
+├── reference/
+│   └── noeos_ve_reference.py
 ├── tests/
 │   ├── unit/
 │   ├── property/
@@ -96,7 +103,7 @@ verification-engine/
 `CODEOWNERS` exige revisión específica para:
 
 - `/packages/engine/src/framing`, `/hashing`, `/normalization`: protocolo/seguridad;
-- `/packages/engine/schemas`, `/vectors`: contratos;
+- `/contracts`, `/packages/engine/schemas`, `/vectors`, `/reference`: contratos;
 - `/.github/workflows`, manifests y lockfile: supply chain;
 - `/docs/09-legalidad`, `LICENSE`, `NOTICE`: legal/licencias;
 - `/security`: seguridad.

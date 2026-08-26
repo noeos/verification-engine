@@ -19,7 +19,7 @@ export function containsUnresolvedMarker(source) {
 }
 
 export function isAllowedPackedPath(path) {
-  return /^(?:CHANGELOG\.md|LICENSE|NOTICE|README\.md|package\.json|dist\/(?:cjs|esm|types)\/[a-z0-9./-]+|schemas\/[a-z0-9./-]+\.json)$/u.test(
+  return /^(?:CHANGELOG\.md|LICENSE|NOTICE|README\.md|package\.json|dist\/(?:cjs|esm|types)\/[a-z0-9./-]+|schemas\/[a-z0-9./-]+\.json|vectors\/[a-z0-9./-]+\.json)$/u.test(
     path,
   );
 }

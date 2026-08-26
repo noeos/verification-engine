@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:noeos:verification-engine:chain-summary:1",
+  "title": "Noeos Verification Engine Chain Summary Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "protocolVersion",
+    "contextId",
+    "sequenceId",
+    "profile",
+    "algorithm",
+    "count",
+    "boundaries",
+    "status",
+    "diagnostics"
+  ],
+  "properties": {
+    "$schema": { "const": "urn:noeos:verification-engine:chain-summary:1" },
+    "protocolVersion": { "const": 1 },
+    "contextId": { "$ref": "#/$defs/identifier" },
+    "sequenceId": { "$ref": "#/$defs/identifier" },
+    "profile": { "$ref": "#/$defs/profile" },
+    "algorithm": { "$ref": "#/$defs/algorithm" },
+    "count": { "$ref": "#/$defs/safeInteger" },
+    "firstPosition": { "$ref": "#/$defs/safeInteger" },
+    "lastPosition": { "$ref": "#/$defs/safeInteger" },
+    "firstLinkDigest": { "$ref": "#/$defs/digest" },
+    "finalLinkDigest": { "$ref": "#/$defs/digest" },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "enum": ["verified", "unverified", "not-applicable"] },
+        "end": { "enum": ["verified", "unverified", "not-applicable"] }
+      }
+    },
+    "status": { "enum": ["valid", "invalid", "indeterminate", "aborted"] },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["errors", "warnings", "info", "truncated"],
+      "properties": {
+        "errors": { "$ref": "#/$defs/safeInteger" },
+        "warnings": { "$ref": "#/$defs/safeInteger" },
+        "info": { "$ref": "#/$defs/safeInteger" },
+        "truncated": { "type": "boolean" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "type": "object", "properties": { "count": { "const": 0 } } },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": { "firstPosition": true },
+              "required": ["firstPosition"]
+            },
+            {
+              "type": "object",
+              "properties": { "lastPosition": true },
+              "required": ["lastPosition"]
+            },
+            {
+              "type": "object",
+              "properties": { "firstLinkDigest": true },
+              "required": ["firstLinkDigest"]
+            },
+            {
+              "type": "object",
+              "properties": { "finalLinkDigest": true },
+              "required": ["finalLinkDigest"]
+            }
+          ]
+        }
+      },
+      "else": {
+        "type": "object",
+        "properties": {
+          "firstPosition": true,
+          "lastPosition": true,
+          "firstLinkDigest": true,
+          "finalLinkDigest": true
+        },
+        "required": ["firstPosition", "lastPosition", "firstLinkDigest", "finalLinkDigest"]
+      }
+    },
+    { "$ref": "#/$defs/digestLengths" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "maxLength": 128
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+          "maxLength": 256
+        }
+      }
+    },
+    "algorithm": { "enum": ["sha-256", "sha-384", "sha-512"] },
+    "safeInteger": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "digest": { "type": "string", "pattern": "^[0-9a-f]+$", "maxLength": 128 },
+    "digestLengths": {
+      "allOf": [
+        {
+          "if": { "type": "object", "properties": { "algorithm": { "const": "sha-256" } } },
+          "then": {
+            "type": "object",
+            "properties": {
+              "firstLinkDigest": { "type": "string", "minLength": 64, "maxLength": 64 },
+              "finalLinkDigest": { "type": "string", "minLength": 64, "maxLength": 64 }
+            }
+          }
+        },
+        {
+          "if": { "type": "object", "properties": { "algorithm": { "const": "sha-384" } } },
+          "then": {
+            "type": "object",
+            "properties": {
+              "firstLinkDigest": { "type": "string", "minLength": 96, "maxLength": 96 },
+              "finalLinkDigest": { "type": "string", "minLength": 96, "maxLength": 96 }
+            }
+          }
+        },
+        {
+          "if": { "type": "object", "properties": { "algorithm": { "const": "sha-512" } } },
+          "then": {
+            "type": "object",
+            "properties": {
+              "firstLinkDigest": { "type": "string", "minLength": 128, "maxLength": 128 },
+              "finalLinkDigest": { "type": "string", "minLength": 128, "maxLength": 128 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

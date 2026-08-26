@@ -10,7 +10,7 @@ The protocol is designed for offline-first verification of data-integrity eviden
 
 ## Availability
 
-No package has been published to npm and the current source does not expose a stable product API or command-line interface. The workspaces remain private until their release requirements, conformance evidence, security review, and publication gates are satisfied.
+No package has been published to npm and no stable operational engine API or command-line interface is exposed. The source already includes versioned contract metadata, JSON Schemas, and independently reproducible protocol vectors; the workspaces remain private until their release requirements, conformance evidence, security review, and publication gates are satisfied.
 
 ## Repository guarantees
 
@@ -39,6 +39,8 @@ These controls describe the repository and release process. Product guarantees a
 | Current compatibility signal |  26.7.0 |     11.19.0 |
 
 The exact, reviewed mapping is stored in [`security/runtime-toolchain.json`](./security/runtime-toolchain.json). npm is used from the corresponding official Node distribution; CI does not replace it globally.
+
+The independent vector-reference gate in CI uses Python 3.13.15 exclusively; it is a verification tool, not a supported product runtime. Its reviewed source is recorded in [`security/reference-toolchain.json`](./security/reference-toolchain.json).
 
 ## Local verification
 

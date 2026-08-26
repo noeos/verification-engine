@@ -6,7 +6,15 @@ import { resolve } from "node:path";
 import Ajv from "ajv";
 import Ajv2020 from "ajv/dist/2020.js";
 
-import { assertProjectRoot, digest, projectRoot, readJson, run, stableJson } from "./project.mjs";
+import {
+  assertProjectRoot,
+  digest,
+  npmCliPath,
+  projectRoot,
+  readJson,
+  run,
+  stableJson,
+} from "./project.mjs";
 import {
   componentName,
   declaredLicenseExpressions,
@@ -32,17 +40,23 @@ if (typeof cyclonedxBin !== "string") {
 
 const cyclonedxPath = resolve(projectRoot, "node_modules/@cyclonedx/cyclonedx-npm", cyclonedxBin);
 const cyclonedxOutput = resolve(outputDirectory, "cyclonedx-1.7.json");
-run(process.execPath, [
-  cyclonedxPath,
-  "--spec-version",
-  "1.7",
-  "--output-format",
-  "JSON",
-  "--output-file",
-  cyclonedxOutput,
-  "--output-reproducible",
-  resolve(projectRoot, "package.json"),
-]);
+run(
+  process.execPath,
+  [
+    cyclonedxPath,
+    "--spec-version",
+    "1.7",
+    "--output-format",
+    "JSON",
+    "--output-file",
+    cyclonedxOutput,
+    "--output-reproducible",
+    resolve(projectRoot, "package.json"),
+  ],
+  {
+    env: { ...process.env, npm_execpath: npmCliPath() },
+  },
+);
 
 const lock = await readJson(resolve(projectRoot, "package-lock.json"));
 const lockPackages = lock.packages ?? {};

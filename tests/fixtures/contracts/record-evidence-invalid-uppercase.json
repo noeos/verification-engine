@@ -1,0 +1,15 @@
+{
+  "schema": "urn:noeos:verification-engine:record-evidence:1",
+  "valid": false,
+  "value": {
+    "$schema": "urn:noeos:verification-engine:record-evidence:1",
+    "protocolVersion": 1,
+    "contextId": "example.context",
+    "recordId": "record-0001",
+    "profile": { "id": "dev.noeos.jcs", "version": "1.0.0" },
+    "algorithm": "sha-256",
+    "normalizedByteLength": 2,
+    "contentDigest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "recordDigest": "1111111111111111111111111111111111111111111111111111111111111111"
+  }
+}
