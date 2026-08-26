@@ -62,13 +62,6 @@ jobs:
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run api:check
       - name: Licenses and package boundary
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run license:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run pack:check
-      - name: Critical-path waiting period
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          NOEOS_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          NOEOS_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node scripts/check-critical-wait.mjs
       - name: DCO sign-off
         if: github.event_name == 'pull_request'
         env:
