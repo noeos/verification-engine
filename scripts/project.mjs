@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { lstat, readFile, readdir } from "node:fs/promises";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
@@ -104,6 +104,18 @@ export async function readJson(path) {
   }
 }
 
+export function npmCliPath(environment = process.env) {
+  const candidate = environment.npm_execpath;
+  if (
+    typeof candidate !== "string" ||
+    !isAbsolute(candidate) ||
+    basename(candidate).toLowerCase() !== "npm-cli.js"
+  ) {
+    throw new Error("A trusted absolute npm CLI path is required; run this command through npm.");
+  }
+  return candidate;
+}
+
 export function run(command, arguments_, options = {}) {
   return execFileSync(command, arguments_, {
     cwd: projectRoot,
@@ -112,6 +124,10 @@ export function run(command, arguments_, options = {}) {
     stdio: options.capture === true ? ["ignore", "pipe", "pipe"] : "inherit",
     ...options,
   });
+}
+
+export function runNpm(arguments_, options = {}) {
+  return run(process.execPath, [npmCliPath(), ...arguments_], options);
 }
 
 export function stableJson(value) {

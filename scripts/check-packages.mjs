@@ -4,7 +4,14 @@ import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
-import { assertProjectRoot, listTarGzEntries, projectRoot, readJson, run } from "./project.mjs";
+import {
+  assertProjectRoot,
+  listTarGzEntries,
+  projectRoot,
+  readJson,
+  run,
+  runNpm,
+} from "./project.mjs";
 import { isAllowedPackedPath } from "./policy-rules.mjs";
 
 await assertProjectRoot();
@@ -43,7 +50,7 @@ for (const workspace of workspaces) {
   const destination = await mkdtemp(resolve(tmpdir(), "noeos-pack-policy-"));
   let files;
   try {
-    run(npmCommand(), [
+    runNpm([
       "pack",
       "--silent",
       "--ignore-scripts",
@@ -89,7 +96,3 @@ for (const workspace of workspaces) {
 }
 
 console.log("Package allowlists and publication guards passed.");
-
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
-}

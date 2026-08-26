@@ -5,7 +5,7 @@ import { test } from "node:test";
 
 import { resolve } from "node:path";
 
-import { digest, isPathInside, stableJson } from "../../scripts/project.mjs";
+import { digest, isPathInside, npmCliPath, stableJson } from "../../scripts/project.mjs";
 
 void test("stableJson sorts object keys recursively without reordering arrays", () => {
   const value = { zebra: { beta: 2, alpha: 1 }, alpha: [{ delta: 4, charlie: 3 }] };
@@ -27,4 +27,13 @@ void test("isPathInside accepts descendants and rejects traversal or the root it
   assert.equal(isPathInside(root, resolve(root, "packages", "engine", "dist")), true);
   assert.equal(isPathInside(root, root), false);
   assert.equal(isPathInside(root, resolve(root, "..", "outside")), false);
+});
+
+void test("npmCliPath accepts only an absolute npm JavaScript entry point", () => {
+  const cli = resolve("toolchain", "npm", "bin", "npm-cli.js");
+
+  assert.equal(npmCliPath({ npm_execpath: cli }), cli);
+  assert.throws(() => npmCliPath({ npm_execpath: "npm.cmd" }), /trusted absolute npm CLI/u);
+  assert.throws(() => npmCliPath({ npm_execpath: resolve("toolchain", "other.js") }), /npm CLI/u);
+  assert.throws(() => npmCliPath({}), /npm CLI/u);
 });

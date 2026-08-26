@@ -4,14 +4,14 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, resolve } from "node:path";
 
-import { assertProjectRoot, projectRoot, run, stableJson } from "./project.mjs";
+import { assertProjectRoot, projectRoot, run, runNpm, stableJson } from "./project.mjs";
 
 await assertProjectRoot();
 run(process.execPath, [resolve(projectRoot, "scripts/build.mjs")]);
 
 const temporaryDirectory = await mkdtemp(resolve(tmpdir(), "noeos-consumer-"));
 try {
-  run(npmCommand(), [
+  runNpm([
     "pack",
     "--silent",
     "--ignore-scripts",
@@ -33,8 +33,7 @@ try {
     "utf8",
   );
 
-  run(
-    npmCommand(),
+  runNpm(
     ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--no-package-lock", ...tarballs],
     { cwd: temporaryDirectory },
   );
@@ -98,7 +97,3 @@ try {
 }
 
 console.log("Clean ESM, CommonJS, CLI-module, and TypeScript consumers passed.");
-
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
-}

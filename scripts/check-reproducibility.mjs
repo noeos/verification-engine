@@ -4,7 +4,7 @@ import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { relative, resolve } from "node:path";
 
-import { assertProjectRoot, digest, projectRoot, run, stableJson } from "./project.mjs";
+import { assertProjectRoot, digest, projectRoot, run, runNpm, stableJson } from "./project.mjs";
 
 await assertProjectRoot();
 
@@ -41,7 +41,7 @@ async function buildSnapshot() {
 async function packSnapshot() {
   const destination = await mkdtemp(resolve(tmpdir(), "noeos-reproducible-pack-"));
   try {
-    run(npmCommand(), [
+    runNpm([
       "pack",
       "--silent",
       "--ignore-scripts",
@@ -73,8 +73,4 @@ async function collectFiles(directory) {
     }
   }
   return results.sort();
-}
-
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
 }
