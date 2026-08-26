@@ -9,6 +9,7 @@ import {
   isAllowedPackedPath,
   isExactVersion,
   isPinnedAction,
+  parseAllowedSshSigner,
 } from "../../scripts/policy-rules.mjs";
 
 void test("dependency versions must be immutable", () => {
@@ -41,4 +42,20 @@ void test("package allowlist rejects source, configuration, and hidden markers",
   assert.equal(isAllowedPackedPath("src/index.ts"), false);
   assert.equal(isAllowedPackedPath(".env"), false);
   assert.equal(isAllowedPackedPath("schemas/.gitkeep"), false);
+});
+
+void test("release signer policy accepts one Git-restricted Ed25519 identity", () => {
+  const key = "A".repeat(43) + "=";
+  assert.deepEqual(
+    parseAllowedSshSigner(
+      `ddcandales@gmail.com namespaces="git" ssh-ed25519 ${key} reviewed-key\n`,
+    ),
+    {
+      key: `ssh-ed25519 ${key}`,
+      namespace: "git",
+      principal: "ddcandales@gmail.com",
+    },
+  );
+  assert.equal(parseAllowedSshSigner("one\ntwo\n"), undefined);
+  assert.equal(parseAllowedSshSigner(`owner@example.com ssh-ed25519 ${key}\n`), undefined);
 });

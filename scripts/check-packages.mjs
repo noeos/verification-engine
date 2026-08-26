@@ -91,7 +91,9 @@ for (const workspace of workspaces) {
     throw new Error(`${workspace.name} unexpectedly became publishable`);
   }
   if (manifest.bin !== undefined) {
-    throw new Error(`${workspace.name} must not expose a binary in the foundation phase`);
+    throw new Error(
+      `${workspace.name} must not expose a binary before its release contract allows it`,
+    );
   }
 }
 

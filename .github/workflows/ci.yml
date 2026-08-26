@@ -33,17 +33,17 @@ jobs:
       contents: read
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Set up primary Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
           registry-url: https://registry.npmjs.org
-      - name: Pin npm
-        run: npm install --global npm@11.17.0 --ignore-scripts
+      - name: Verify primary Node and bundled npm
+        run: npm run toolchain:check -- --profile node-24-primary
       - name: Install from reviewed lockfile
         run: npm ci --ignore-scripts --omit=optional
       - name: Repository and documentation policy
@@ -80,26 +80,31 @@ jobs:
         include:
           - os: ubuntu-24.04
             node: 22.14.0
+            profile: node-22-minimum
           - os: ubuntu-24.04
             node: 22.23.2
+            profile: node-22-latest
           - os: ubuntu-24.04
-            node: 24.19.0
+            node: 24.20.0
+            profile: node-24-primary
           - os: windows-2025
-            node: 24.19.0
+            node: 24.20.0
+            profile: node-24-primary
           - os: macos-15
-            node: 24.19.0
+            node: 24.20.0
+            profile: node-24-primary
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up Node ${{ matrix.node }}
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
           registry-url: https://registry.npmjs.org
-      - name: Pin npm
-        run: npm install --global npm@11.17.0 --ignore-scripts
+      - name: Verify Node and bundled npm
+        run: npm run toolchain:check -- --profile ${{ matrix.profile }}
       - name: Install and verify consumers
         run: npm ci --ignore-scripts --omit=optional && npm run typecheck && npm test && npm run consumer:check
 
@@ -112,15 +117,17 @@ jobs:
       NPM_CONFIG_ENGINE_STRICT: "false"
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up Node Current
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 26
-      - name: Pin npm and run compatibility smoke
-        run: npm install --global npm@11.17.0 --ignore-scripts && npm ci --ignore-scripts --omit=optional && npm test
+          node-version: 26.8.0
+      - name: Verify current Node and bundled npm
+        run: npm run toolchain:check -- --profile node-26-current
+      - name: Run compatibility smoke
+        run: npm ci --ignore-scripts --omit=optional && npm test
 
   reproducibility:
     name: Required · package reproducibility
@@ -128,14 +135,16 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out reviewed source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up primary Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
-      - name: Pin npm and install
-        run: npm install --global npm@11.17.0 --ignore-scripts && npm ci --ignore-scripts --omit=optional
+      - name: Verify primary Node and bundled npm
+        run: npm run toolchain:check -- --profile node-24-primary
+      - name: Install from reviewed lockfile
+        run: npm ci --ignore-scripts --omit=optional
       - name: Verify clean consumers and reproducibility
         run: npm run consumer:check && npm run reproducibility:check

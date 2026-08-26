@@ -16,7 +16,7 @@ Targets are not a guarantee of a specific fix date. Noeos will preserve evidence
 
 ## Supported versions
 
-No supported public version exists yet. Once `1.0.0` is released, each major version will follow the five-year support policy in the normative documentation.
+This repository has not published a supported public version. Starting with `1.0.0`, each major version follows the five-year support policy in the normative documentation.
 
 ## Scope and safe harbor
 

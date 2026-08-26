@@ -11,5 +11,10 @@
     "sourceMap": false,
     "types": ["node"]
   },
-  "include": ["tests/**/*.ts", "scripts/project.mjs", "scripts/policy-rules.mjs"]
+  "include": [
+    "tests/**/*.ts",
+    "scripts/project.mjs",
+    "scripts/policy-rules.mjs",
+    "scripts/toolchain-rules.mjs"
+  ]
 }

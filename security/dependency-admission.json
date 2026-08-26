@@ -29,6 +29,7 @@
     },
     {
       "license": "MIT",
+      "majorVersionPolicy": "Keep Node type declarations on the primary supported Node major; review the next major when the runtime contract changes.",
       "name": "@types/node",
       "necessity": "Type-check Node 24 APIs used by tests and repository automation.",
       "replacement": "The maintained Node type declarations matching the primary LTS line.",
@@ -83,6 +84,7 @@
     },
     {
       "license": "Apache-2.0",
+      "majorVersionPolicy": "Major updates require compatibility from typescript-eslint and API Extractor; the admitted versions currently support TypeScript 5.9.",
       "name": "typescript",
       "necessity": "Compile and strictly type-check the product and tests.",
       "replacement": "A reviewed TypeScript compiler release compatible with supported Node lines.",

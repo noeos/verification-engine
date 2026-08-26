@@ -1,5 +1,7 @@
 # `@noeos/verification-engine`
 
-This workspace is the future Noeos verification engine. It is private, unpublished, and intentionally exposes no product API during the repository-foundation phase.
+Package boundary for the deterministic, offline-first Noeos verification engine. It is prepared for ESM and CommonJS, has zero runtime dependencies, and is governed by the normative protocol contracts in the repository [`docs/`](../../docs/README.md).
 
-The released engine will remain offline-first and have zero runtime dependencies. Its normative contract is defined in the repository `docs/` corpus before implementation.
+No version has been published to npm and the current package exposes no stable product API. It remains private until conformance vectors, security evidence, compatibility guarantees, and release gates are complete.
+
+Repository-wide verification instructions and security reporting channels are available in the [main README](../../README.md) and [`SECURITY.md`](../../SECURITY.md).
