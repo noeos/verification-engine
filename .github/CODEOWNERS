@@ -1,0 +1,25 @@
+# Default ownership
+* @ddavid07
+
+# Protocol and security-critical implementation
+/packages/engine/src/framing/ @ddavid07
+/packages/engine/src/hashing/ @ddavid07
+/packages/engine/src/normalization/ @ddavid07
+/packages/engine/schemas/ @ddavid07
+/vectors/ @ddavid07
+
+# Supply chain and release
+/.github/workflows/ @ddavid07
+/.github/dependabot.yml @ddavid07
+/package.json @ddavid07
+/package-lock.json @ddavid07
+/packages/*/package.json @ddavid07
+/scripts/ @ddavid07
+
+# Security and legal
+/security/ @ddavid07
+/docs/06-seguridad/ @ddavid07
+/docs/09-legalidad/ @ddavid07
+/LICENSE @ddavid07
+/NOTICE @ddavid07
+/SECURITY.md @ddavid07

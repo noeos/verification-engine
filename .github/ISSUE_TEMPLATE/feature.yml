@@ -1,0 +1,33 @@
+name: Capability proposal
+description: Propose a change against the approved product scope and requirements.
+title: "proposal: "
+labels:
+  - proposal
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and user
+      description: Identify the user, use case, and measurable problem without prescribing implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements and decisions
+      description: Link affected normative requirements, decisions, contracts, or roadmap gates.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: State observable success criteria, negative cases, and compatibility expectations.
+    validations:
+      required: true
+  - type: textarea
+    id: impacts
+    attributes:
+      label: Security, legal, performance, and operations impact
+    validations:
+      required: true

@@ -1,0 +1,9 @@
+.build
+artifacts
+coverage
+dist
+docs
+node_modules
+package-lock.json
+scripts/schemas/spdx-3.0.1.schema.json
+security/audits/generated

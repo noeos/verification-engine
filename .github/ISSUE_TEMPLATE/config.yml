@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/noeos/verification-engine/security/advisories/new
+    about: Report suspected vulnerabilities privately.
+  - name: General support
+    url: mailto:soporte@noeos.es
+    about: Ask a non-security question without posting sensitive data.
+  - name: Conduct report
+    url: mailto:abuse@noeos.es
+    about: Report conduct or abuse privately.

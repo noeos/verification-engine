@@ -1,0 +1,45 @@
+{
+  "name": "@noeos/verification-engine-cli",
+  "version": "0.0.0-development",
+  "private": true,
+  "description": "Command-line interface for the Noeos verification engine.",
+  "license": "Apache-2.0",
+  "author": "Noeos contributors",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.14.0 <23 || >=24.0.0 <25"
+  },
+  "main": "./dist/esm/main.js",
+  "types": "./dist/types/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/main.d.ts",
+      "import": "./dist/esm/main.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@noeos/verification-engine": "0.0.0-development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noeos/verification-engine.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/noeos/verification-engine/issues"
+  },
+  "homepage": "https://github.com/noeos/verification-engine#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  }
+}
