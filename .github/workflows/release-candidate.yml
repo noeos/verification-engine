@@ -59,11 +59,11 @@ jobs:
       - name: Verify primary Node and bundled npm
         run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Install from reviewed lockfile
-        run: npm ci --ignore-scripts --omit=optional
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
       - name: Run all local gates
-        run: npm run ci
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run ci
       - name: Build candidate tarballs
-        run: mkdir -p artifacts/release && npm pack --json --ignore-scripts --pack-destination artifacts/release --workspaces > artifacts/release/pack-manifest.json
+        run: mkdir -p artifacts/release && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- pack --json --ignore-scripts --pack-destination artifacts/release --workspaces > artifacts/release/pack-manifest.json
       - name: Generate checksums
         working-directory: artifacts/release
         run: sha256sum *.tgz > SHA256SUMS && sha512sum *.tgz > SHA512SUMS
@@ -113,5 +113,5 @@ jobs:
         run: |
           set -euo pipefail
           for package in artifacts/release/*.tgz; do
-            npm stage publish "$package" --provenance --access public --tag next
+            node scripts/run-verified-package-manager.mjs --profile node-24-primary -- stage publish "$package" --provenance --access public --tag next
           done

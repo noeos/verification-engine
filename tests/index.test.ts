@@ -14,3 +14,4 @@ import "./unit/project.unit.test.js";
 import "./unit/policy-rules.unit.test.js";
 import "./unit/sbom-rules.unit.test.js";
 import "./unit/toolchain-rules.unit.test.js";
+import "./unit/package-manager-rules.unit.test.js";

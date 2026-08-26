@@ -307,6 +307,11 @@ for (const workflow of workflowFiles) {
   if (/permissions:\s*write-all/u.test(source)) {
     failures.push(`${toPosix(workflow)} grants prohibited write-all permissions`);
   }
+  if (/^\s*run:\s*[^\n]*\bnpm\s+/mu.test(source) || /^\s+npm\s+/mu.test(source)) {
+    failures.push(
+      `${toPosix(workflow)} invokes npm directly instead of the verified package-manager runner`,
+    );
+  }
   const checkoutCount = [...source.matchAll(/^\s*uses:\s*actions\/checkout@/gmu)].length;
   const credentialGuardCount = [...source.matchAll(/^\s*persist-credentials:\s*false\s*$/gmu)]
     .length;
@@ -380,6 +385,7 @@ const requiredPaths = [
   "packages/engine/src/index.ts",
   "packages/cli/src/main.ts",
   "scripts/check-runtime-smoke.mjs",
+  "scripts/run-verified-package-manager.mjs",
   "security/dependency-inventory.json",
   "security/allowed-signers",
   "security/runtime-toolchain.json",

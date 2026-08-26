@@ -56,7 +56,7 @@ jobs:
       - name: Verify primary Node and bundled npm
         run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Install and build without lifecycle scripts
-        run: npm ci --ignore-scripts --omit=optional && npm run build
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run build
       - name: Analyze
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
 
@@ -114,4 +114,4 @@ jobs:
       - name: Verify primary Node and bundled npm
         run: node scripts/check-toolchain.mjs --profile node-24-primary
       - name: Install and audit
-        run: npm ci --ignore-scripts --omit=optional && npm run security:audit && npm run security:signatures && npm run license:check
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run security:audit && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run security:signatures && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run license:check

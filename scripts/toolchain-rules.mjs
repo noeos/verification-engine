@@ -50,6 +50,15 @@ export function bundledNpmManifestPath(nodeExecutable, platform = process.platfo
   );
 }
 
+export function bundledNpmCliPath(nodeExecutable, platform = process.platform) {
+  const path = platform === "win32" ? win32 : posix;
+  return path.resolve(
+    path.dirname(bundledNpmManifestPath(nodeExecutable, platform)),
+    "bin",
+    "npm-cli.js",
+  );
+}
+
 export function validateActiveToolchain(actual, expected) {
   const failures = [];
   if (actual.node !== expected.node) {

@@ -38,6 +38,7 @@ Regla: una modificación requiere registrar fecha, motivo, alternativas e impact
 | D-031 | Los formatos de intercambio 1.x usan JSON Schema Draft 2020-12, con esquemas estrictos y URNs inmutables. | Validación interoperable y rechazo explícito de datos ambiguos o desconocidos. |
 | D-032 | Los vectores centrales se verifican mediante una referencia Python de biblioteca estándar, separada del producto TypeScript. | Reducir el riesgo de que una implementación comparta el mismo defecto que el motor. |
 | D-033 | Cada archivo de vectores tiene hash SHA-256, listado exhaustivo y fuentes/licencias declaradas; CI ejecuta la referencia independiente con Python exacto revisado. | Evitar corpus parcial, manipulación silenciosa y resultados dependientes de runtimes no controlados. |
+| D-034 | CI ejecuta npm exclusivamente mediante un runner que valida el par Node/npm exacto y resuelve el CLI incluido en esa distribución; no se permite la resolución implícita por `PATH`. | Fijar de forma comprobable la herramienta que instala, prueba, empaqueta o publica, y prevenir regresiones de cadena de suministro. |
 
 ## Alternativas rechazadas
 

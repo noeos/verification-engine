@@ -15,6 +15,7 @@ Un consumidor debe poder vincular el tarball npm a una fuente revisada, un workf
 - Caches no se restauran en release; los builds de release parten limpios.
 - Jobs de análisis que suben resultados usan permisos separados y no reciben secretos innecesarios.
 - Artefactos entre jobs llevan digest y retención limitada.
+- Toda operación de npm dentro de CI se lanza mediante un runner propio: valida el par exacto Node/npm de la política, identifica el binario incluido con ese Node y solo admite las operaciones revisadas. Los workflows no invocan un npm resuelto implícitamente por `PATH`.
 
 ## Dependencias
 

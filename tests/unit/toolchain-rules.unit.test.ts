@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  bundledNpmCliPath,
   bundledNpmManifestPath,
   getToolchainProfile,
   validateActiveToolchain,
@@ -60,6 +61,14 @@ void test("bundled npm is resolved from the active official Node layout", () => 
   assert.equal(
     bundledNpmManifestPath("C:\\node\\node.exe", "win32"),
     "C:\\node\\node_modules\\npm\\package.json",
+  );
+  assert.equal(
+    bundledNpmCliPath("/opt/node/bin/node", "linux"),
+    "/opt/node/lib/node_modules/npm/bin/npm-cli.js",
+  );
+  assert.equal(
+    bundledNpmCliPath("C:\\node\\node.exe", "win32"),
+    "C:\\node\\node_modules\\npm\\bin\\npm-cli.js",
   );
   assert.throws(() => bundledNpmManifestPath("", "linux"), /executable path is required/u);
 });
