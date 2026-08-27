@@ -4,6 +4,21 @@ Estado: **normativo**
 
 Las fases ordenan dependencias. No crean un MVP ni autorizan publicar un producto parcial como estable.
 
+## Bloques de ejecución
+
+Las fases se ejecutan en los siguientes bloques para coordinar trabajo relacionado sin reducir alcance, alterar dependencias ni sustituir los gates individuales de cada fase:
+
+1. **Bloque 1 · Fundamentos verificables:** fases 3 y 4.
+2. **Bloque 2 · Motor de integridad:** fases 5 y 6.
+3. **Bloque 3 · Streaming y superficies de distribución:** fases 7, 8 y 9.
+4. **Bloque 4 · Seguridad, supply chain y rendimiento:** fases 10 y 11.
+5. **Bloque 5 · Preparación operativa y legal:** fase 12.
+6. **Bloque 6 · Auditoría y publicación:** fase 13.
+
+Las fases 0, 1 y 2 son prerrequisitos ya cerrados antes de iniciar estos bloques. Agrupar fases permite planificarlas y construirlas de forma coordinada, pero cada fase conserva todos sus entregables, evidencias y criterios de cierre. Un bloque solo se cierra cuando todas las fases que contiene han superado sus gates sin excepciones ni trabajo diferido.
+
+Esta agrupación es un cambio organizativo motivado por coordinar capacidades con dependencias próximas. Afecta únicamente a la ejecución del roadmap: no modifica requisitos, decisiones cerradas, API, formatos, seguridad, rendimiento, legalidad, pruebas, documentación exigible ni compatibilidad.
+
 ## Fase 0 · Cierre de planificación
 
 Entregables: este corpus, decisiones, requisitos, fuentes y revisión de coherencia.
