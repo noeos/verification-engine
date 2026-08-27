@@ -59,8 +59,8 @@ const mutants = [
   {
     name: "rule-order",
     file: "packages/engine/src/rules/rule-set.ts",
-    from: "rules.sort((left, right) => compareText(left.id, right.id) || compareText(left.version, right.version));",
-    to: "rules.sort((left, right) => compareText(right.id, left.id) || compareText(right.version, left.version));",
+    from: "rules.sort(\n      (left, right) => compareText(left.id, right.id) || compareText(left.version, right.version),\n    );",
+    to: "rules.sort(\n      (left, right) => compareText(right.id, left.id) || compareText(right.version, left.version),\n    );",
   },
 ];
 
