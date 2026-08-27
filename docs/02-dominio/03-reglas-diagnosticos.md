@@ -8,7 +8,7 @@ Una regla tiene:
 
 - `id` ASCII estable y namespaced;
 - versión SemVer exacta;
-- fases declaradas: `input`, `normalized`, `record`, `link`, `chain`;
+- fases declaradas: `input`, `normalization`, `record`, `link`, `chain`;
 - severidad por defecto;
 - requisitos de contexto;
 - función determinista y sin efectos laterales;

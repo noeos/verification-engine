@@ -124,6 +124,40 @@ function verifyVector(vector, category, sourceIds, vectorIds) {
     };
   }
 
+  if (vector.kind === "evidence") {
+    assertExactKeys(vector, [
+      "algorithm",
+      "evidence",
+      "expectedDigest",
+      "expectedFrameHex",
+      "expectedJcsHex",
+      "id",
+      "kind",
+      "requirement",
+      "source",
+    ]);
+    const algorithm = checkedAlgorithm(vector.algorithm, vector.id);
+    if (!isObject(vector.evidence)) throw new Error("Invalid evidence vector: " + vector.id);
+    const jcs = Buffer.from(canonicalJson(vector.evidence), "utf8");
+    if (jcs.toString("hex") !== vector.expectedJcsHex) {
+      throw new Error("Evidence JCS mismatch: " + vector.id);
+    }
+    const frame = encodeFrame({
+      kind: "evidence",
+      fields: [
+        { tag: 1, type: "utf8", value: algorithm },
+        { tag: 2, type: "utf8", value: vector.evidence.$schema },
+        { tag: 3, type: "bytes", value: jcs.toString("hex") },
+      ],
+    });
+    if (frame.toString("hex") !== vector.expectedFrameHex) {
+      throw new Error("Evidence frame mismatch: " + vector.id);
+    }
+    const hash = createHash(algorithm.replace("-", "")).update(frame).digest("hex");
+    if (hash !== vector.expectedDigest) throw new Error("Evidence digest mismatch: " + vector.id);
+    return { id: vector.id, expectedFrameHex: frame.toString("hex"), expectedDigest: hash };
+  }
+
   if (vector.kind === "hashing") {
     assertExactKeys(vector, [
       "algorithm",
@@ -262,6 +296,17 @@ function assertExactKeys(value, keys) {
   if (stableJson(Object.keys(value).sort()) !== stableJson([...keys].sort())) {
     throw new Error("Unexpected fields: " + Object.keys(value).sort().join(","));
   }
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function safeVectorPath(path) {

@@ -4,11 +4,15 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { encodeFrame } from "../packages/engine/dist/esm/framing/frame-encoder.js";
+import { buildEvidenceFrame } from "../packages/engine/dist/esm/framing/frame-builders.js";
 import { hashBytes } from "../packages/engine/dist/esm/hashing/hash-adapter.js";
 import { DEFAULT_LIMITS } from "../packages/engine/dist/esm/domain/limits.js";
+import { digestEvidence } from "../packages/engine/dist/esm/evidence/digest-evidence.js";
+import { jcsProfile } from "../packages/engine/dist/esm/normalization/jcs-profile.js";
+import { normalizeToBytes } from "../packages/engine/dist/esm/normalization/normalize.js";
 
 const root = resolve(import.meta.dirname, "..");
-const files = ["framing.json", "hashing.json", "invalid.json"];
+const files = ["evidence.json", "framing.json", "hashing.json", "invalid.json"];
 let checked = 0;
 
 for (const file of files) {
@@ -32,6 +36,29 @@ for (const file of files) {
       assertSuccess(result, vector.id);
       if (result.value.toHex() !== vector.expectedDigest)
         throw new Error(`Engine digest mismatch: ${vector.id}`);
+      checked += 1;
+      continue;
+    }
+    if (vector.kind === "evidence") {
+      const normalized = normalizeToBytes(jcsProfile, vector.evidence, DEFAULT_LIMITS);
+      assertSuccess(normalized, vector.id);
+      if (bytesToHex(normalized.value.bytes) !== vector.expectedJcsHex)
+        throw new Error(`Engine evidence JCS mismatch: ${vector.id}`);
+      const frame = buildEvidenceFrame(
+        {
+          algorithm: vector.algorithm,
+          schemaUrn: vector.evidence.$schema,
+          evidenceJcsBytes: normalized.value.bytes,
+        },
+        DEFAULT_LIMITS,
+      );
+      assertSuccess(frame, vector.id);
+      if (bytesToHex(frame.value) !== vector.expectedFrameHex)
+        throw new Error(`Engine evidence frame mismatch: ${vector.id}`);
+      const digest = digestEvidence(vector.evidence, DEFAULT_LIMITS);
+      assertSuccess(digest, vector.id);
+      if (digest.value.toHex() !== vector.expectedDigest)
+        throw new Error(`Engine evidence digest mismatch: ${vector.id}`);
       checked += 1;
       continue;
     }

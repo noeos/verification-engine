@@ -5,6 +5,8 @@ import "./integration/signing.integration.test.js";
 import "./contract/contracts.contract.test.js";
 import "./contract/vectors.contract.test.js";
 import "./contract/phase34.contract.test.js";
+import "./contract/phase56.contract.test.js";
+import "./contract/phase56-negative.contract.test.js";
 import "./property/project.property.test.js";
 import "./property/contracts.property.test.js";
 import "./property/phase34.property.test.js";

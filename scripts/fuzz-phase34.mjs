@@ -5,6 +5,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 import { DEFAULT_LIMITS } from "../packages/engine/dist/esm/domain/limits.js";
+import { ChainBuilder } from "../packages/engine/dist/esm/chains/chain-builder.js";
+import { verifyChain } from "../packages/engine/dist/esm/chains/verify-chain.js";
+import { digestEvidence } from "../packages/engine/dist/esm/evidence/digest-evidence.js";
+import { parseEvidenceText } from "../packages/engine/dist/esm/evidence/evidence-parser.js";
+import { ProfileRegistry } from "../packages/engine/dist/esm/normalization/profile-registry.js";
 import { parseJsonText } from "../packages/engine/dist/esm/validation/json-text-parser.js";
 import { parseFrame } from "../packages/engine/dist/esm/framing/frame-parser.js";
 import { jcsProfile } from "../packages/engine/dist/esm/normalization/jcs-profile.js";
@@ -16,6 +21,8 @@ const corpus = JSON.parse(
 );
 const seconds = parseSeconds(process.env.NOEOS_FUZZ_SECONDS);
 const deadline = Date.now() + seconds * 1000;
+const engineOptions = Object.freeze({ limits: DEFAULT_LIMITS, profiles: new ProfileRegistry() });
+const fuzzChain = makeChain();
 
 function parseSeconds(value) {
   if (value === undefined) return 60;
@@ -30,6 +37,8 @@ await Promise.all([
   runTarget("json", fuzzJson),
   runTarget("frame", fuzzFrame),
   runTarget("jcs", fuzzJcs),
+  runTarget("evidence", fuzzEvidence),
+  runTarget("chain", fuzzChainInput),
 ]);
 
 async function runTarget(name, target) {
@@ -63,6 +72,67 @@ function fuzzJcs(seed, iteration) {
   const value = corpus.jcs[seed % corpus.jcs.length];
   const candidate = iteration % 4 === 0 ? value : { value, seed: seed % 1000 };
   assertResult(normalizeToBytes(jcsProfile, candidate, DEFAULT_LIMITS));
+}
+
+function fuzzEvidence(seed, iteration) {
+  const evidence = fuzzChain[seed % fuzzChain.length];
+  const text = JSON.stringify(
+    iteration % 3 === 0 ? evidence : { ...evidence, position: evidence.position + (seed % 2) },
+  );
+  assertResult(parseEvidenceText(text, DEFAULT_LIMITS));
+  assertResult(digestEvidence(evidence, DEFAULT_LIMITS));
+}
+
+function fuzzChainInput(seed, iteration) {
+  const evidence = fuzzChain[seed % fuzzChain.length];
+  const result = verifyChain(
+    {
+      contextId: "fuzz.context",
+      sequenceId: "fuzz.sequence",
+      profile: { id: "dev.noeos.jcs", version: "1.0.0" },
+      algorithm: "sha-256",
+      mode: "internal",
+      records: [
+        { payload: { value: iteration % 2 === 0 ? evidence.position : seed % 1000 }, evidence },
+      ],
+    },
+    engineOptions,
+  );
+  if (
+    result === null ||
+    typeof result !== "object" ||
+    !["valid", "invalid", "indeterminate", "aborted"].includes(result.status)
+  ) {
+    throw new Error("fuzz verifier returned a malformed result");
+  }
+}
+
+function makeChain() {
+  const created = ChainBuilder.create(
+    {
+      contextId: "fuzz.context",
+      sequenceId: "fuzz.sequence",
+      profile: { id: "dev.noeos.jcs", version: "1.0.0" },
+      algorithm: "sha-256",
+    },
+    engineOptions,
+  );
+  if (!created.ok) throw new Error("fuzz chain setup failed");
+  const first = created.value.append({
+    recordId: "fuzz-0",
+    payload: { value: 0 },
+    position: 0,
+    previous: { kind: "none" },
+  });
+  if (!first.ok) throw new Error("fuzz chain setup failed");
+  const second = created.value.append({
+    recordId: "fuzz-1",
+    payload: { value: 1 },
+    position: 1,
+    previous: { kind: "digest", value: first.value.linkDigest },
+  });
+  if (!second.ok) throw new Error("fuzz chain setup failed");
+  return [first.value, second.value];
 }
 
 function assertResult(result) {

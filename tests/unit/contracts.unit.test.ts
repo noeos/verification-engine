@@ -23,5 +23,5 @@ void test("generated public contract metadata is complete, frozen by type, and d
     ],
   );
   assert.equal(VECTOR_SET.protocolVersion, 1);
-  assert.equal(VECTOR_SET.files.length, 3);
+  assert.equal(VECTOR_SET.files.length, 4);
 });

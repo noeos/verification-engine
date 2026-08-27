@@ -13,12 +13,13 @@ vectors/
   manifest.json
   hashing.json
   framing.json
+  evidence.json
   invalid.json
 reference/
   noeos_ve_reference.py
 ```
 
-`manifest.json` declara schema, versión del conjunto, licencia, archivos, SHA-256 de cada archivo y fuentes externas. Se publica en el paquete bajo export `vectors` y como artifact de release. Los primeros archivos cierran hash, framing y fallos estructurales; normalización, registros, cadenas, evidencia completa y compatibilidad añadirán sus propios ficheros al implementar esas capacidades, sin alterar casos válidos existentes.
+`manifest.json` declara schema, versión del conjunto, licencia, archivos, SHA-256 de cada archivo y fuentes externas. Se publica en el paquete bajo export `vectors` y como artifact de release. Los archivos actuales cierran hash, framing, evidencia y fallos estructurales; los vectores de registros, cadenas y compatibilidad se añadirán al implementar esas capacidades, sin alterar casos válidos existentes.
 
 ## Categorías mínimas
 

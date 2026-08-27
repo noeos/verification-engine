@@ -44,6 +44,24 @@ const mutants = [
     from: "if (input.length > limits.maxPayloadBytes)",
     to: "if (input.length >= limits.maxPayloadBytes)",
   },
+  {
+    name: "complete-boundary-count",
+    file: "packages/engine/src/chains/verify-chain.ts",
+    from: "config.expectedCount !== undefined && config.expectedCount === config.records.length;",
+    to: "config.expectedCount === undefined || config.expectedCount === config.records.length;",
+  },
+  {
+    name: "link-previous-digest",
+    file: "packages/engine/src/chains/verify-chain.ts",
+    from: "...(previous === undefined ? {} : { previousLinkDigest: previous.value }),",
+    to: "...(previous === undefined ? { previousLinkDigest: previous?.value } : {}),",
+  },
+  {
+    name: "rule-order",
+    file: "packages/engine/src/rules/rule-set.ts",
+    from: "rules.sort(\n      (left, right) => compareText(left.id, right.id) || compareText(left.version, right.version),\n    );",
+    to: "rules.sort(\n      (left, right) => compareText(right.id, left.id) || compareText(right.version, left.version),\n    );",
+  },
 ];
 
 const results = [];
@@ -76,9 +94,7 @@ async function evaluateMutant(mutant) {
       "tsconfig.tests.json",
     ]);
     if (compile.status !== 0) return { name: mutant.name, killed: true };
-    const tests = run(workingRoot, process.execPath, [
-      ".build/tests/tests/contract/phase34.contract.test.js",
-    ]);
+    const tests = run(workingRoot, process.execPath, [".build/tests/tests/index.test.js"]);
     return { name: mutant.name, killed: tests.status !== 0 };
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
