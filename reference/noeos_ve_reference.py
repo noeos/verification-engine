@@ -120,6 +120,28 @@ def verify_case(case: object) -> None:
         if actual != case.get("expectedDigest"):
             raise ValueError(f"digest mismatch: {case['id']}")
         return
+    if kind == "evidence":
+        evidence = case.get("evidence")
+        algorithm = case.get("algorithm")
+        if not isinstance(evidence, dict) or algorithm not in {"sha-256", "sha-384", "sha-512"}:
+            raise ValueError(f"invalid evidence vector: {case['id']}")
+        canonical = json.dumps(evidence, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
+        if canonical.hex() != case.get("expectedJcsHex"):
+            raise ValueError(f"evidence JCS mismatch: {case['id']}")
+        encoded = frame({
+            "kind": "evidence",
+            "fields": [
+                {"tag": 1, "type": "utf8", "value": algorithm},
+                {"tag": 2, "type": "utf8", "value": evidence.get("$schema")},
+                {"tag": 3, "type": "bytes", "value": canonical.hex()},
+            ],
+        })
+        if encoded.hex() != case.get("expectedFrameHex"):
+            raise ValueError(f"evidence frame mismatch: {case['id']}")
+        actual = hashlib.new(algorithm.replace("-", ""), encoded).hexdigest()
+        if actual != case.get("expectedDigest"):
+            raise ValueError(f"evidence digest mismatch: {case['id']}")
+        return
     if kind == "invalid":
         try:
             frame(case.get("frame"))

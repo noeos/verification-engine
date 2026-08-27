@@ -500,6 +500,11 @@ export const VECTOR_SET = {
   protocolVersion: 1,
   files: [
     {
+      path: "evidence.json",
+      category: "evidence",
+      sha256: "b4e3b4a38f67e7489eafb05528fd309ee931db66e1a0c230ffbd0e103db1f032",
+    },
+    {
       path: "framing.json",
       category: "framing",
       sha256: "bacc590419dcee44ad0fa3e707d00a9bf322ac51243efc0a0418821fc6c92ea8",

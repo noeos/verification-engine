@@ -62,6 +62,8 @@ Gate: reproducción cruzada byte a byte, mutation ≥95% y revisión criptográf
 
 ## Fase 5 · Registros, cadenas y verificación
 
+Estado de ejecución: completada como parte del Bloque 2, con implementación, pruebas negativas y gates de alteración/frontera/duplicado.
+
 - record/link evidence, génesis, builder y resumen.
 - completa, fragmento y consistencia interna.
 - duplicados none/window/full/external.
@@ -70,6 +72,8 @@ Gate: reproducción cruzada byte a byte, mutation ≥95% y revisión criptográf
 Gate: matriz completa de alteraciones, omisiones, reordenación, forks y límites.
 
 ## Fase 6 · Reglas y evidencias
+
+Estado de ejecución: completada como parte del Bloque 2, con RuleSet determinista, parsers estrictos, digest de evidencia, schema y vector independiente.
 
 - RuleSet, fases, orden determinista y captura.
 - schemas finales, parsers de versiones y `digestEvidence`.

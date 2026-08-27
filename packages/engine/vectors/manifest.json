@@ -5,6 +5,12 @@
   "license": "Apache-2.0",
   "files": [
     {
+      "path": "evidence.json",
+      "category": "evidence",
+      "caseCount": 1,
+      "sha256": "b4e3b4a38f67e7489eafb05528fd309ee931db66e1a0c230ffbd0e103db1f032"
+    },
+    {
       "path": "framing.json",
       "category": "framing",
       "caseCount": 6,

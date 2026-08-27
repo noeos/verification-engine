@@ -18,6 +18,10 @@ export interface DiagnosticOptions {
   readonly position?: number;
   readonly details?: Readonly<Record<string, DiagnosticDetail>>;
   readonly causeCode?: string;
+  /** Only RuleSet may override the catalog default for RULE_FAILED. */
+  readonly severity?: DiagnosticSeverity;
+  /** Stable namespaced key supplied by a trusted rule. */
+  readonly messageKey?: string;
 }
 
 export function createDiagnostic(
@@ -37,9 +41,14 @@ export function createDiagnostic(
   const diagnostic = {
     $schema: DIAGNOSTIC_SCHEMA,
     code,
-    severity: metadata.severity,
+    severity:
+      code === "RULE_FAILED" && options.severity !== undefined
+        ? options.severity
+        : metadata.severity,
     phase,
-    messageKey: code.toLowerCase().replaceAll("_", "."),
+    messageKey:
+      safeString(options.messageKey, /^[a-z][a-z0-9.-]{0,127}$/u, 128) ??
+      code.toLowerCase().replaceAll("_", "."),
     ...(path === undefined ? {} : { path }),
     ...(recordId === undefined ? {} : { recordId }),
     ...(position === undefined ? {} : { position }),

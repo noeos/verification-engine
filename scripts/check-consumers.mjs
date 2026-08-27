@@ -40,12 +40,12 @@ try {
 
   await writeFile(
     resolve(temporaryDirectory, "esm.mjs"),
-    'import { DIAGNOSTIC_CODES } from "@noeos/verification-engine";\nimport { SCHEMA_ASSETS } from "@noeos/verification-engine/schemas";\nimport { VECTOR_SET } from "@noeos/verification-engine/vectors";\nimport * as cli from "@noeos/verification-engine-cli";\nif (DIAGNOSTIC_CODES.length !== 64 || SCHEMA_ASSETS.length !== 5 || VECTOR_SET.version !== "1.0.0" || Object.keys(cli).length !== 0) process.exit(1);\n',
+    'import { DIAGNOSTIC_CODES } from "@noeos/verification-engine";\nimport { SCHEMA_ASSETS } from "@noeos/verification-engine/schemas";\nimport { VECTOR_SET } from "@noeos/verification-engine/vectors";\nimport * as cli from "@noeos/verification-engine-cli";\nif (DIAGNOSTIC_CODES.length !== 64 || SCHEMA_ASSETS.length !== 5 || VECTOR_SET.version !== "1.0.0" || VECTOR_SET.files.length !== 4 || Object.keys(cli).length !== 0) process.exit(1);\n',
     "utf8",
   );
   await writeFile(
     resolve(temporaryDirectory, "common.cjs"),
-    'const engine = require("@noeos/verification-engine");\nconst schemas = require("@noeos/verification-engine/schemas");\nconst vectors = require("@noeos/verification-engine/vectors");\nif (engine.DIAGNOSTIC_CODES.length !== 64 || schemas.SCHEMA_ASSETS.length !== 5 || vectors.VECTOR_SET.files.length !== 3) process.exit(1);\n',
+    'const engine = require("@noeos/verification-engine");\nconst schemas = require("@noeos/verification-engine/schemas");\nconst vectors = require("@noeos/verification-engine/vectors");\nif (engine.DIAGNOSTIC_CODES.length !== 64 || schemas.SCHEMA_ASSETS.length !== 5 || vectors.VECTOR_SET.files.length !== 4) process.exit(1);\n',
     "utf8",
   );
   await writeFile(
