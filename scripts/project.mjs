@@ -37,7 +37,7 @@ export async function listRepositoryFiles(start = projectRoot) {
 
   async function visit(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
-    entries.sort((left, right) => left.name.localeCompare(right.name, "en"));
+    entries.sort((left, right) => compareCodeUnits(left.name, right.name));
 
     for (const entry of entries) {
       if (entry.isDirectory() && excludedDirectories.has(entry.name)) {
@@ -145,7 +145,7 @@ function sortJson(value) {
   if (value !== null && typeof value === "object") {
     return Object.fromEntries(
       Object.entries(value)
-        .sort(([left], [right]) => left.localeCompare(right, "en"))
+        .sort(([left], [right]) => compareCodeUnits(left, right))
         .map(([key, item]) => [key, sortJson(item)]),
     );
   }
@@ -156,4 +156,10 @@ function readTarString(buffer, start, length) {
   const end = buffer.indexOf(0, start);
   const boundedEnd = end >= start && end < start + length ? end : start + length;
   return buffer.subarray(start, boundedEnd).toString("utf8");
+}
+
+function compareCodeUnits(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }

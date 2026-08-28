@@ -3,6 +3,7 @@
 import type { AlgorithmId } from "./algorithm-id.js";
 import { copyBytes } from "./byte-view.js";
 
+/** @public */
 export class Digest {
   private constructor(
     readonly algorithm: AlgorithmId,

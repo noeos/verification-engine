@@ -6,8 +6,10 @@ import type { OperationResult } from "../domain/operation-result.js";
 import type { ProfileVersion } from "../domain/version.js";
 import type { ByteSink } from "./byte-sink.js";
 
+/** @public */
 export type NormalizationInputKind = "json" | "bytes";
 
+/** @public */
 export interface NormalizationStats {
   readonly byteLength: number;
 }

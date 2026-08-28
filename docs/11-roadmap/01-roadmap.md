@@ -83,6 +83,8 @@ Gate: reglas no pueden cambiar bytes; schemas/vectors/docs sincronizados.
 
 ## Fase 7 · Streaming y resistencia
 
+Estado de ejecución: completada como parte del Bloque 3; streaming secuencial, backpressure, cancelación, parser NDJSON y output transaccional superaron los gates de resistencia, incluyendo el escenario oficial de 10.000.000 de registros.
+
 - sync iterable, async iterable, backpressure, NDJSON y cancelación.
 - memoria acotada, error modes y atomic output.
 - stress/soak/fuzz prolongado.
@@ -91,6 +93,8 @@ Gate: 1 GiB/10M escenarios, memoria y handles estables, cancelación correcta.
 
 ## Fase 8 · API y empaquetado
 
+Estado de ejecución: completada como parte del Bloque 3; la fachada pública, exports ESM/CommonJS, tipos, subpaths y consumer checks superaron los gates de distribución.
+
 - exports públicos ESM/CommonJS, tipos y subpaths.
 - engine tarball sin runtime dependencies.
 - consumer projects y compatibilidad.
@@ -98,6 +102,8 @@ Gate: 1 GiB/10M escenarios, memoria y handles estables, cancelación correcta.
 Gate: paridad total y package allowlist/reproducibilidad.
 
 ## Fase 9 · CLI completa
+
+Estado de ejecución: completada como parte del Bloque 3; los comandos, envelopes, códigos de salida, formatos y filesystem seguro superaron la matriz E2E y de cobertura.
 
 - todos los comandos, exit codes, formatos, señales y filesystem seguro.
 - E2E multiplataforma desde tarball.

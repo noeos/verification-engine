@@ -5,6 +5,186 @@
 ```ts
 
 // @public (undocumented)
+export type AlgorithmId = "sha-256" | "sha-384" | "sha-512";
+
+// @public (undocumented)
+export type BoundaryState = "verified" | "unverified" | "not-applicable";
+
+// @public (undocumented)
+export const BUILTIN_PROFILES: readonly BuiltinProfile[];
+
+// @public (undocumented)
+export interface BuiltinProfile {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly inputKind: "json" | "bytes";
+    // (undocumented)
+    readonly version: string;
+}
+
+// @public (undocumented)
+export interface ByteSink {
+    // (undocumented)
+    readonly byteLength: number;
+    // (undocumented)
+    write(value: Uint8Array): void;
+}
+
+// @public (undocumented)
+export const CHAIN_SUMMARY_EVIDENCE_SCHEMA: "urn:noeos:verification-engine:chain-summary:1";
+
+// @public (undocumented)
+export interface ChainBuilder {
+    // (undocumented)
+    abort(reason?: string): void;
+    // (undocumented)
+    append(input: ChainRecordInput): OperationResult<LinkEvidence>;
+    // (undocumented)
+    appendAll(input: Iterable<ChainRecordInput>): OperationResult<ChainSummaryEvidence>;
+    // (undocumented)
+    appendStream(input: AsyncIterable<ChainRecordInput>, options?: StreamOptions): Promise<OperationResult<ChainSummaryEvidence>>;
+    // (undocumented)
+    finalize(): OperationResult<ChainSummaryEvidence>;
+    // (undocumented)
+    snapshot(): ChainSnapshot;
+}
+
+// @public (undocumented)
+export interface ChainConfig {
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    readonly allowEmpty?: boolean;
+    // (undocumented)
+    readonly contextId: string;
+    // (undocumented)
+    readonly duplicatePolicy?: DuplicatePolicy;
+    // (undocumented)
+    readonly profile: ProfileReference;
+    // (undocumented)
+    readonly sequenceId: string;
+}
+
+// @public (undocumented)
+export interface ChainRecordInput {
+    // (undocumented)
+    readonly payload: unknown;
+    // (undocumented)
+    readonly position: number;
+    // (undocumented)
+    readonly previous: PreviousLink;
+    // (undocumented)
+    readonly recordId: string;
+}
+
+// @public (undocumented)
+export interface ChainSnapshot {
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    readonly contextId: string;
+    // (undocumented)
+    readonly count: number;
+    // (undocumented)
+    readonly nextPosition: number;
+    // (undocumented)
+    readonly previous: PreviousLink;
+    // (undocumented)
+    readonly profile: ProfileReference;
+    // (undocumented)
+    readonly sequenceId: string;
+}
+
+// @public (undocumented)
+export interface ChainSummaryEvidence {
+    // (undocumented)
+    readonly $schema: typeof CHAIN_SUMMARY_EVIDENCE_SCHEMA;
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    readonly boundaries: Readonly<{
+        readonly start: BoundaryState;
+        readonly end: BoundaryState;
+    }>;
+    // (undocumented)
+    readonly contextId: string;
+    // (undocumented)
+    readonly count: number;
+    // (undocumented)
+    readonly diagnostics: DiagnosticSummary;
+    // (undocumented)
+    readonly finalLinkDigest?: string;
+    // (undocumented)
+    readonly firstLinkDigest?: string;
+    // (undocumented)
+    readonly firstPosition?: number;
+    // (undocumented)
+    readonly lastPosition?: number;
+    // Warning: (ae-forgotten-export) The symbol "EvidenceProfile" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly profile: EvidenceProfile;
+    // (undocumented)
+    readonly protocolVersion: 1;
+    // (undocumented)
+    readonly sequenceId: string;
+    // (undocumented)
+    readonly status: VerificationStatus;
+}
+
+// @public (undocumented)
+export interface ChainVerificationConfig {
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    readonly allowEmpty?: boolean;
+    // (undocumented)
+    readonly contextId: string;
+    // (undocumented)
+    readonly duplicatePolicy?: DuplicatePolicy;
+    // (undocumented)
+    readonly expectedCount?: number;
+    // (undocumented)
+    readonly expectedFinalLinkDigest?: string;
+    // (undocumented)
+    readonly expectedPrevious?: PreviousLink;
+    // (undocumented)
+    readonly profile: ProfileReference;
+    // (undocumented)
+    readonly sequenceId: string;
+    // (undocumented)
+    readonly startPosition?: number;
+}
+
+// @public (undocumented)
+export function createEngine(options?: EngineOptions): Engine;
+
+// @public (undocumented)
+export interface Diagnostic {
+    // (undocumented)
+    readonly $schema: typeof DIAGNOSTIC_SCHEMA;
+    // (undocumented)
+    readonly causeCode?: string;
+    // (undocumented)
+    readonly code: DiagnosticCode;
+    // (undocumented)
+    readonly details?: DiagnosticDetails;
+    // (undocumented)
+    readonly messageKey: string;
+    // (undocumented)
+    readonly path?: string;
+    // (undocumented)
+    readonly phase: DiagnosticPhase;
+    // (undocumented)
+    readonly position?: number;
+    // (undocumented)
+    readonly recordId?: string;
+    // (undocumented)
+    readonly severity: DiagnosticSeverity;
+}
+
+// @public (undocumented)
 export const DIAGNOSTIC_CODES: readonly [{
     readonly code: "INPUT_REQUIRED";
     readonly family: "input";
@@ -392,13 +572,414 @@ export const DIAGNOSTIC_CODES: readonly [{
 }];
 
 // @public (undocumented)
+export const DIAGNOSTIC_SCHEMA: "urn:noeos:verification-engine:diagnostic:1";
+
+// @public (undocumented)
 export type DiagnosticCode = (typeof DIAGNOSTIC_CODES)[number]["code"];
+
+// Warning: (ae-forgotten-export) The symbol "DiagnosticDetail" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type DiagnosticDetails = Readonly<Record<string, DiagnosticDetail>>;
 
 // @public (undocumented)
 export type DiagnosticFamily = (typeof DIAGNOSTIC_CODES)[number]["family"];
 
 // @public (undocumented)
+export type DiagnosticPhase = "input" | "normalization" | "record" | "link" | "chain" | "output";
+
+// @public (undocumented)
 export type DiagnosticSeverity = (typeof DIAGNOSTIC_CODES)[number]["severity"];
+
+// @public (undocumented)
+export interface DiagnosticSummary {
+    // (undocumented)
+    readonly errors: number;
+    // (undocumented)
+    readonly info: number;
+    // (undocumented)
+    readonly truncated: boolean;
+    // (undocumented)
+    readonly warnings: number;
+}
+
+// @public (undocumented)
+export class Digest {
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    static fromValidated(algorithm: AlgorithmId, bytes: Uint8Array): Digest;
+    // (undocumented)
+    toBytes(): Uint8Array;
+    // (undocumented)
+    toHex(): string;
+}
+
+// @public (undocumented)
+export type DuplicatePolicy = {
+    readonly kind: "none";
+} | {
+    readonly kind: "window";
+    readonly size: number;
+} | {
+    readonly kind: "full";
+    readonly maxRecords: number;
+} | {
+    readonly kind: "external";
+    readonly index: ExternalDuplicateIndex;
+};
+
+// @public (undocumented)
+export interface Engine {
+    // (undocumented)
+    createChain(config: ChainConfig): ChainBuilder;
+    // (undocumented)
+    digestEvidence(input: Evidence): OperationResult<Digest>;
+    // (undocumented)
+    hashRecord(input: RecordInput): OperationResult<RecordEvidence>;
+    // (undocumented)
+    verifyChain(input: VerifyChainInput): VerificationResult<ChainSummaryEvidence>;
+    // (undocumented)
+    verifyRecord(input: VerifyRecordInput): VerificationResult<RecordEvidence>;
+    // (undocumented)
+    verifyStream(input: VerifyStreamInput): Promise<VerificationResult<ChainSummaryEvidence>>;
+}
+
+// @public (undocumented)
+export class EngineConfigurationError extends TypeError {
+    constructor(code: "INPUT_TYPE_INVALID" | "INPUT_LIMIT_EXCEEDED" | "RULE_VERSION_CONFLICT" | "PROFILE_VERSION_CONFLICT");
+    // (undocumented)
+    readonly code: "INPUT_TYPE_INVALID" | "INPUT_LIMIT_EXCEEDED" | "RULE_VERSION_CONFLICT" | "PROFILE_VERSION_CONFLICT";
+}
+
+// @public (undocumented)
+export interface EngineEvent {
+    // (undocumented)
+    readonly bytesNormalized: number;
+    // (undocumented)
+    readonly code?: string;
+    // (undocumented)
+    readonly name: EngineEventName;
+    // (undocumented)
+    readonly operation: string;
+    // (undocumented)
+    readonly position?: number;
+    // (undocumented)
+    readonly recordId?: string;
+    // (undocumented)
+    readonly recordsSeen: number;
+}
+
+// @public (undocumented)
+export type EngineEventName = "operation.started" | "record.validated" | "record.hashed" | "link.created" | "diagnostic.emitted" | "operation.completed" | "operation.aborted";
+
+// @public (undocumented)
+export interface EngineOptions {
+    // (undocumented)
+    readonly duplicatePolicy?: DuplicatePolicy;
+    // (undocumented)
+    readonly limits?: Partial<Limits>;
+    // (undocumented)
+    readonly onEvent?: (event: EngineEvent) => void;
+    // (undocumented)
+    readonly profiles?: readonly NormalizationProfile[];
+    // (undocumented)
+    readonly rules?: readonly Rule[];
+}
+
+// @public (undocumented)
+export type Evidence = RecordEvidence | LinkEvidence | ChainSummaryEvidence;
+
+// @public (undocumented)
+export interface Limits {
+    // (undocumented)
+    readonly maxArrayElements: number;
+    // (undocumented)
+    readonly maxDiagnostics: number;
+    // (undocumented)
+    readonly maxFullRecords: number;
+    // (undocumented)
+    readonly maxJsonDepth: number;
+    // (undocumented)
+    readonly maxNdjsonLineBytes: number;
+    // (undocumented)
+    readonly maxObjectProperties: number;
+    // (undocumented)
+    readonly maxPayloadBytes: number;
+    // (undocumented)
+    readonly maxStringBytes: number;
+}
+
+// @public (undocumented)
+export const LINK_EVIDENCE_SCHEMA: "urn:noeos:verification-engine:link-evidence:1";
+
+// @public (undocumented)
+export interface LinkEvidence extends RecordEvidenceFields {
+    // (undocumented)
+    readonly $schema: typeof LINK_EVIDENCE_SCHEMA;
+    // (undocumented)
+    readonly linkDigest: string;
+    // (undocumented)
+    readonly position: number;
+    // (undocumented)
+    readonly previous: PreviousLink;
+    // (undocumented)
+    readonly sequenceId: string;
+}
+
+// @public (undocumented)
+export type NormalizationInputKind = "json" | "bytes";
+
+// @public (undocumented)
+export interface NormalizationProfile<I = unknown> {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly inputKind: NormalizationInputKind;
+    // (undocumented)
+    readonly manifest: ProfileManifest;
+    // (undocumented)
+    normalize(input: I, sink: ByteSink, limits: Limits): OperationResult<NormalizationStats>;
+    // (undocumented)
+    validate(input: unknown, limits: Limits): OperationResult<I>;
+    // (undocumented)
+    readonly version: string;
+}
+
+// @public (undocumented)
+export interface NormalizationStats {
+    // (undocumented)
+    readonly byteLength: number;
+}
+
+// @public (undocumented)
+export type OperationResult<T> = {
+    readonly ok: true;
+    readonly value: T;
+    readonly diagnostics: readonly Diagnostic[];
+} | {
+    readonly ok: false;
+    readonly diagnostics: readonly Diagnostic[];
+};
+
+// @public (undocumented)
+export type PreviousLink = {
+    readonly kind: "none";
+} | {
+    readonly kind: "digest";
+    readonly value: string;
+};
+
+// @public (undocumented)
+export interface ProfileManifest {
+    // (undocumented)
+    readonly license: string;
+    // (undocumented)
+    readonly limits: Limits;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly vectorSha256: string;
+    // (undocumented)
+    readonly version: string;
+}
+
+// @public (undocumented)
+export interface ProfileReference {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly version: string;
+}
+
+// @public (undocumented)
+export interface ReadonlyByteView {
+    // (undocumented)
+    readonly byteLength: number;
+    // (undocumented)
+    copySlice(start?: number, end?: number): Uint8Array;
+}
+
+// @public (undocumented)
+export const RECORD_EVIDENCE_SCHEMA: "urn:noeos:verification-engine:record-evidence:1";
+
+// @public (undocumented)
+export interface RecordEvidence extends RecordEvidenceFields {
+    // (undocumented)
+    readonly $schema: typeof RECORD_EVIDENCE_SCHEMA;
+}
+
+// @public (undocumented)
+export interface RecordEvidenceFields {
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    readonly contentDigest: string;
+    // (undocumented)
+    readonly contextId: string;
+    // (undocumented)
+    readonly normalizedByteLength: number;
+    // (undocumented)
+    readonly profile: EvidenceProfile;
+    // (undocumented)
+    readonly protocolVersion: 1;
+    // (undocumented)
+    readonly recordDigest: string;
+    // (undocumented)
+    readonly recordId: string;
+}
+
+// @public (undocumented)
+export interface RecordInput {
+    // (undocumented)
+    readonly algorithm: AlgorithmId;
+    // (undocumented)
+    readonly contextId: string;
+    // (undocumented)
+    readonly payload: unknown;
+    // (undocumented)
+    readonly profile: ProfileReference;
+    // (undocumented)
+    readonly recordId: string;
+}
+
+// @public (undocumented)
+export interface Rule {
+    // (undocumented)
+    readonly defaultSeverity: DiagnosticSeverity;
+    // (undocumented)
+    evaluate(context: RuleContext): unknown;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly phases: readonly RulePhase[];
+    // (undocumented)
+    readonly version: string;
+}
+
+// @public (undocumented)
+export interface RuleContext {
+    // (undocumented)
+    readonly chain?: object;
+    // (undocumented)
+    readonly input?: Readonly<Record<string, unknown>>;
+    // (undocumented)
+    readonly link?: object;
+    // (undocumented)
+    readonly normalized?: ReadonlyByteView;
+    // (undocumented)
+    readonly phase: RulePhase;
+    // (undocumented)
+    readonly position?: number;
+    // (undocumented)
+    readonly record?: object;
+    // (undocumented)
+    readonly recordId?: string;
+}
+
+// @public (undocumented)
+export interface RuleFinding {
+    // (undocumented)
+    readonly details?: DiagnosticDetails;
+    // (undocumented)
+    readonly messageKey: string;
+    // (undocumented)
+    readonly path?: string;
+    // (undocumented)
+    readonly severity?: DiagnosticSeverity;
+}
+
+// @public (undocumented)
+export type RulePhase = Exclude<DiagnosticPhase, "output">;
+
+// @public (undocumented)
+export interface StreamOptions {
+    // (undocumented)
+    readonly onEvidence?: (evidence: LinkEvidence) => void | Promise<void>;
+    // (undocumented)
+    readonly signal?: AbortSignal;
+}
+
+// @public (undocumented)
+export type VerificationMode = "complete" | "fragment" | "internal";
+
+// @public (undocumented)
+export interface VerificationResult<T> {
+    // (undocumented)
+    readonly boundaries: Readonly<{
+        readonly start: BoundaryState;
+        readonly end: BoundaryState;
+    }>;
+    // (undocumented)
+    readonly diagnostics: readonly Diagnostic[];
+    // (undocumented)
+    readonly evidence: T | undefined;
+    // (undocumented)
+    readonly stats: VerificationStats;
+    // (undocumented)
+    readonly status: VerificationStatus;
+    // (undocumented)
+    readonly verificationMode: VerificationMode;
+}
+
+// @public (undocumented)
+export interface VerificationStats {
+    // (undocumented)
+    readonly bytesNormalized: number;
+    // (undocumented)
+    readonly errors: number;
+    // (undocumented)
+    readonly info: number;
+    // (undocumented)
+    readonly linksVerified: number;
+    // (undocumented)
+    readonly recordsSeen: number;
+    // (undocumented)
+    readonly recordsVerified: number;
+    // (undocumented)
+    readonly warnings: number;
+}
+
+// @public (undocumented)
+export type VerificationStatus = "valid" | "invalid" | "indeterminate" | "aborted";
+
+// @public (undocumented)
+export interface VerifyChainInput extends ChainVerificationConfig {
+    // (undocumented)
+    readonly mode: "complete" | "fragment" | "internal";
+    // (undocumented)
+    readonly records: Iterable<VerifyChainRecord>;
+}
+
+// @public (undocumented)
+export interface VerifyChainRecord {
+    // (undocumented)
+    readonly evidence: unknown;
+    // (undocumented)
+    readonly payload: unknown;
+}
+
+// @public (undocumented)
+export interface VerifyRecordInput {
+    // (undocumented)
+    readonly evidence: unknown;
+    // (undocumented)
+    readonly payload: unknown;
+}
+
+// @public (undocumented)
+export interface VerifyStreamInput extends ChainVerificationConfig {
+    // (undocumented)
+    readonly mode: "complete" | "fragment" | "internal";
+    // (undocumented)
+    readonly records: AsyncIterable<VerifyChainRecord>;
+    // (undocumented)
+    readonly signal?: AbortSignal;
+}
+
+// Warnings were encountered during analysis:
+//
+// dist/types/domain/duplicate-policy.d.ts:22:5 - (ae-forgotten-export) The symbol "ExternalDuplicateIndex" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

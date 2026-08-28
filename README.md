@@ -10,7 +10,7 @@ The protocol is designed for offline-first verification of data-integrity eviden
 
 ## Availability
 
-No package has been published to npm and no stable operational engine API or command-line interface is exposed. The source already includes versioned contract metadata, JSON Schemas, and independently reproducible protocol vectors; the workspaces remain private until their release requirements, conformance evidence, security review, and publication gates are satisfied.
+No package has been published to npm and the workspaces remain private development artifacts. The repository now contains the reviewed engine API, CLI command boundary, versioned contract metadata, JSON Schemas, and independently reproducible protocol vectors; production use remains blocked until the remaining security, performance, legal, audit, and publication gates are satisfied.
 
 ## Repository guarantees
 

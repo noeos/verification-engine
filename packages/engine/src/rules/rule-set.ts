@@ -74,6 +74,10 @@ export class RuleSet {
     }
     return collector.finish();
   }
+
+  toArray(): readonly Rule[] {
+    return this.rules;
+  }
 }
 
 export function createReadonlyByteView(bytes: Uint8Array): ReadonlyByteView {

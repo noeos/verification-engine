@@ -11,6 +11,9 @@
     "node": ">=22.14.0 <23 || >=24.0.0 <25"
   },
   "main": "./dist/esm/main.js",
+  "bin": {
+    "noeos-ve": "./dist/esm/main.js"
+  },
   "types": "./dist/types/main.d.ts",
   "exports": {
     ".": {

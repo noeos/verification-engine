@@ -44,7 +44,7 @@ interface VerificationConfig {
   readonly profile: Readonly<{ readonly id: string; readonly version: string }>;
   readonly algorithm: "sha-256" | "sha-384" | "sha-512";
   readonly mode: VerificationMode;
-  readonly records: readonly unknown[];
+  readonly records: Iterable<unknown> | AsyncIterable<unknown>;
   readonly expectedCount?: number;
   readonly expectedFinalLinkDigest?: string;
   readonly expectedPrevious?: PreviousLink;
@@ -63,85 +63,152 @@ export function verifyChain(
   input: unknown,
   options: ChainVerificationOptions,
 ): VerificationResult<ChainSummaryEvidence> {
-  const config = validateVerificationConfig(input, options.limits);
+  const config = validateVerificationConfig(input, options.limits, "sync");
   if (!config.ok) return invalidResult(config.diagnostics, "internal");
   const rules = RuleSet.create(config.value.rules, options.limits);
   if (!rules.ok) return invalidResult(rules.diagnostics, config.value.mode);
-  const collector = new DiagnosticCollector(options.limits);
-  const duplicateDetector = createDuplicateDetector(config.value.duplicatePolicy, options.limits);
-  let previous: PreviousLink | undefined;
-  let first: LinkEvidence | undefined;
-  let last: LinkEvidence | undefined;
-  let expectedPosition: number | undefined;
-  let bytesNormalized = 0;
-  let recordsVerified = 0;
-  let linksVerified = 0;
-  let fatal = false;
+  const verifier = new ChainVerificationAccumulator(config.value, options, rules.value);
+  if (!isIterable(config.value.records)) return invalidResult([], config.value.mode);
+  try {
+    for (const item of config.value.records) verifier.process(item);
+  } catch {
+    return verifier.streamFailure();
+  }
+  return verifier.finish();
+}
 
-  for (const item of config.value.records) {
-    const parsedItem = parseVerificationItem(item, options.limits);
-    if (!parsedItem.ok) {
-      addAll(collector, parsedItem.diagnostics);
-      fatal = true;
-      continue;
+export async function verifyChainStream(
+  input: unknown,
+  options: ChainVerificationOptions,
+  signal?: AbortSignal,
+): Promise<VerificationResult<ChainSummaryEvidence>> {
+  const config = validateVerificationConfig(input, options.limits, "async");
+  if (!config.ok) return invalidResult(config.diagnostics, "internal");
+  const rules = RuleSet.create(config.value.rules, options.limits);
+  if (!rules.ok) return invalidResult(rules.diagnostics, config.value.mode);
+  const verifier = new ChainVerificationAccumulator(config.value, options, rules.value);
+  const asyncRecords = config.value.records;
+  if (!isAsyncIterable(asyncRecords)) return invalidResult([], config.value.mode);
+  let iterator: AsyncIterator<unknown> | undefined;
+  try {
+    if (isAborted(signal)) return verifier.aborted();
+    iterator = asyncRecords[Symbol.asyncIterator]();
+    for (;;) {
+      if (isAborted(signal)) return verifier.aborted();
+      let next: IteratorResult<unknown>;
+      try {
+        next = await iterator.next();
+      } catch {
+        return verifier.streamFailure();
+      }
+      if (next.done === true) {
+        if (isAborted(signal)) return verifier.aborted();
+        return verifier.finish();
+      }
+      verifier.process(next.value);
+      if (isAborted(signal)) return verifier.aborted();
     }
-    const evidence = parseLinkEvidence(parsedItem.value.evidence, options.limits);
+  } finally {
+    if (iterator !== undefined && isAborted(signal)) {
+      try {
+        await iterator.return?.();
+      } catch {
+        // The requested abort result remains authoritative; no payload is exposed.
+      }
+    }
+  }
+}
+
+class ChainVerificationAccumulator {
+  private readonly collector: DiagnosticCollector;
+  private readonly duplicateDetector;
+  private previous: PreviousLink | undefined;
+  private first: LinkEvidence | undefined;
+  private last: LinkEvidence | undefined;
+  private expectedPosition: number | undefined;
+  private bytesNormalized = 0;
+  private recordsVerified = 0;
+  private linksVerified = 0;
+  private recordsSeen = 0;
+  private fatal = false;
+
+  constructor(
+    private readonly config: VerificationConfig,
+    private readonly options: ChainVerificationOptions,
+    private readonly rules: RuleSet,
+  ) {
+    this.collector = new DiagnosticCollector(options.limits);
+    this.duplicateDetector = createDuplicateDetector(config.duplicatePolicy, options.limits);
+  }
+
+  process(item: unknown): void {
+    this.recordsSeen += 1;
+    const parsedItem = parseVerificationItem(item, this.options.limits);
+    if (!parsedItem.ok) {
+      addAll(this.collector, parsedItem.diagnostics);
+      this.fatal = true;
+      return;
+    }
+    const evidence = parseLinkEvidence(parsedItem.value.evidence, this.options.limits);
     if (!evidence.ok) {
-      addAll(collector, evidence.diagnostics);
-      fatal = true;
-      continue;
+      addAll(this.collector, evidence.diagnostics);
+      this.fatal = true;
+      return;
     }
     addAll(
-      collector,
-      rules.value.evaluate(
+      this.collector,
+      this.rules.evaluate(
         Object.freeze({
           phase: "link",
           link: evidence.value,
           recordId: evidence.value.recordId,
           position: evidence.value.position,
         }),
-        options.limits,
+        this.options.limits,
       ),
     );
-    if (first === undefined) {
-      first = evidence.value;
-      expectedPosition = initialPosition(config.value, evidence.value);
+    if (this.first === undefined) {
+      this.first = evidence.value;
+      this.expectedPosition = initialPosition(this.config, evidence.value);
     }
-    checkMetadata(evidence.value, config.value, collector);
-    if (expectedPosition !== undefined && evidence.value.position !== expectedPosition) {
-      collector.addCode("POSITION_MISMATCH", "chain", { position: evidence.value.position });
+    checkMetadata(evidence.value, this.config, this.collector);
+    if (this.expectedPosition !== undefined && evidence.value.position !== this.expectedPosition) {
+      this.collector.addCode("POSITION_MISMATCH", "chain", { position: evidence.value.position });
     }
     if (
-      previous !== undefined &&
-      !samePrevious(evidence.value.previous, previous, config.value.algorithm)
+      this.previous !== undefined &&
+      !samePrevious(evidence.value.previous, this.previous, this.config.algorithm)
     ) {
-      collector.addCode("PREVIOUS_LINK_MISMATCH", "chain", { position: evidence.value.position });
+      this.collector.addCode("PREVIOUS_LINK_MISMATCH", "chain", {
+        position: evidence.value.position,
+      });
     }
-    if (previous === undefined) checkStartBoundary(evidence.value, config.value, collector);
+    if (this.previous === undefined)
+      checkStartBoundary(evidence.value, this.config, this.collector);
 
     const record = computeRecord(
       {
-        contextId: config.value.contextId,
+        contextId: this.config.contextId,
         recordId: evidence.value.recordId,
         payload: parsedItem.value.payload,
-        profile: config.value.profile,
-        algorithm: config.value.algorithm,
+        profile: this.config.profile,
+        algorithm: this.config.algorithm,
       },
-      recordOptions(options, rules.value),
+      recordOptions(this.options, this.rules),
     );
     if (!record.ok) {
-      addAll(collector, record.diagnostics);
-      fatal = true;
+      addAll(this.collector, record.diagnostics);
+      this.fatal = true;
     } else {
-      bytesNormalized += record.value.evidence.normalizedByteLength;
+      this.bytesNormalized += record.value.evidence.normalizedByteLength;
       if (
         !sameDigest(
           record.value.evidence.contentDigest,
           evidence.value.contentDigest,
-          config.value.algorithm,
+          this.config.algorithm,
         )
       ) {
-        collector.addCode("CONTENT_DIGEST_MISMATCH", "record", {
+        this.collector.addCode("CONTENT_DIGEST_MISMATCH", "record", {
           recordId: evidence.value.recordId,
           position: evidence.value.position,
         });
@@ -150,91 +217,139 @@ export function verifyChain(
         !sameDigest(
           record.value.evidence.recordDigest,
           evidence.value.recordDigest,
-          config.value.algorithm,
+          this.config.algorithm,
         )
       ) {
-        collector.addCode("RECORD_DIGEST_MISMATCH", "record", {
+        this.collector.addCode("RECORD_DIGEST_MISMATCH", "record", {
           recordId: evidence.value.recordId,
           position: evidence.value.position,
         });
       } else {
-        recordsVerified += 1;
+        this.recordsVerified += 1;
       }
     }
-    const selfLink = recomposeLink(evidence.value, options.limits);
+    const selfLink = recomposeLink(evidence.value, this.options.limits);
     if (!selfLink.ok) {
-      addAll(collector, selfLink.diagnostics);
-      fatal = true;
+      addAll(this.collector, selfLink.diagnostics);
+      this.fatal = true;
     } else if (
-      !sameDigest(selfLink.value.toHex(), evidence.value.linkDigest, config.value.algorithm)
+      !sameDigest(selfLink.value.toHex(), evidence.value.linkDigest, this.config.algorithm)
     ) {
-      collector.addCode("LINK_DIGEST_MISMATCH", "link", {
+      this.collector.addCode("LINK_DIGEST_MISMATCH", "link", {
         recordId: evidence.value.recordId,
         position: evidence.value.position,
       });
     } else {
-      linksVerified += 1;
+      this.linksVerified += 1;
     }
     const observed = observedLink(evidence.value);
-    const duplicates = duplicateDetector.inspect(observed);
+    const duplicates = this.duplicateDetector.inspect(observed);
     if (!duplicates.ok) {
-      addAll(collector, duplicates.diagnostics);
-      fatal = true;
+      addAll(this.collector, duplicates.diagnostics);
+      this.fatal = true;
     } else {
-      addAll(collector, duplicates.value);
-      duplicateDetector.commit(observed);
+      addAll(this.collector, duplicates.value);
+      try {
+        this.duplicateDetector.commit(observed);
+      } catch {
+        this.collector.addCode("INTERNAL_INVARIANT_BROKEN", "chain");
+        this.fatal = true;
+      }
     }
-    previous = Object.freeze({ kind: "digest", value: evidence.value.linkDigest });
-    expectedPosition = evidence.value.position + 1;
-    last = evidence.value;
+    this.previous = Object.freeze({ kind: "digest", value: evidence.value.linkDigest });
+    this.expectedPosition = evidence.value.position + 1;
+    this.last = evidence.value;
   }
 
-  if (config.value.records.length === 0 && !config.value.allowEmpty) {
-    collector.addCode("EMPTY_CHAIN_FORBIDDEN", "chain");
-  }
-  const boundaries = determineBoundaries(config.value, first, last, collector);
-  addAll(
-    collector,
-    rules.value.evaluate(
-      Object.freeze({
-        phase: "chain",
-        chain: Object.freeze({
-          count: config.value.records.length,
-          boundaries,
-          mode: config.value.mode,
+  finish(): VerificationResult<ChainSummaryEvidence> {
+    if (this.recordsSeen === 0 && !this.config.allowEmpty) {
+      this.collector.addCode("EMPTY_CHAIN_FORBIDDEN", "chain");
+    }
+    const boundaries = determineBoundaries(
+      this.config,
+      this.first,
+      this.last,
+      this.recordsSeen,
+      this.collector,
+    );
+    addAll(
+      this.collector,
+      this.rules.evaluate(
+        Object.freeze({
+          phase: "chain",
+          chain: Object.freeze({ count: this.recordsSeen, boundaries, mode: this.config.mode }),
         }),
-      }),
-      options.limits,
-    ),
-  );
-  const diagnostics = collector.finish();
-  const status =
-    diagnostics.some(({ severity }) => severity === "error") || fatal
-      ? "invalid"
-      : config.value.mode === "complete" &&
-          (boundaries.start === "unverified" || boundaries.end === "unverified")
-        ? "indeterminate"
-        : "valid";
-  const summary = buildSummary(config.value, first, last, diagnostics, status, boundaries);
-  return Object.freeze({
-    status,
-    diagnostics,
-    evidence: summary,
-    stats: buildStats(
-      config.value.records.length,
-      recordsVerified,
-      linksVerified,
-      bytesNormalized,
+        this.options.limits,
+      ),
+    );
+    const diagnostics = this.collector.finish();
+    const status =
+      diagnostics.some(({ severity }) => severity === "error") || this.fatal
+        ? "invalid"
+        : this.config.mode === "complete" &&
+            (boundaries.start === "unverified" || boundaries.end === "unverified")
+          ? "indeterminate"
+          : "valid";
+    return Object.freeze({
+      status,
       diagnostics,
-    ),
-    boundaries,
-    verificationMode: config.value.mode,
-  });
+      evidence: buildSummary(
+        this.config,
+        this.first,
+        this.last,
+        this.recordsSeen,
+        diagnostics,
+        status,
+        boundaries,
+      ),
+      stats: buildStats(
+        this.recordsSeen,
+        this.recordsVerified,
+        this.linksVerified,
+        this.bytesNormalized,
+        diagnostics,
+      ),
+      boundaries,
+      verificationMode: this.config.mode,
+    });
+  }
+
+  streamFailure(): VerificationResult<ChainSummaryEvidence> {
+    this.collector.addCode("INPUT_STREAM_FAILED", "output");
+    return this.failureResult("invalid");
+  }
+
+  aborted(): VerificationResult<ChainSummaryEvidence> {
+    this.collector.addCode("OPERATION_ABORTED", "output");
+    return this.failureResult("aborted");
+  }
+
+  private failureResult(status: "invalid" | "aborted"): VerificationResult<ChainSummaryEvidence> {
+    const diagnostics = this.collector.finish();
+    return Object.freeze({
+      status,
+      diagnostics,
+      evidence: undefined,
+      stats: buildStats(
+        this.recordsSeen,
+        this.recordsVerified,
+        this.linksVerified,
+        this.bytesNormalized,
+        diagnostics,
+      ),
+      boundaries: Object.freeze({
+        start: "not-applicable" as const,
+        end: "not-applicable" as const,
+      }),
+      verificationMode: this.config.mode,
+    });
+  }
 }
 
 function validateVerificationConfig(
   value: unknown,
   limits: Limits,
+  kind: "sync" | "async",
 ): OperationResult<VerificationConfig> {
   const entries = inspectPlainObject(value);
   if (entries === undefined) return verificationFailure(limits);
@@ -271,11 +386,13 @@ function validateVerificationConfig(
     !profile.ok ||
     !algorithm.ok ||
     !isMode(mode) ||
-    !Array.isArray(records) ||
     typeof allowEmpty !== "boolean"
   ) {
     return verificationFailure(limits);
   }
+  const recordsResult =
+    kind === "sync" ? asIterable(records, limits) : asAsyncIterable(records, limits);
+  if (!recordsResult.ok) return recordsResult;
   const expectedCount = optionalSafeInteger(fields.get("expectedCount"));
   if (fields.has("expectedCount") && expectedCount === undefined)
     return verificationFailure(limits);
@@ -300,7 +417,7 @@ function validateVerificationConfig(
       profile: profile.value,
       algorithm: algorithm.value,
       mode,
-      records: copyUnknownArray(records),
+      records: recordsResult.value,
       ...(expectedCount === undefined ? {} : { expectedCount }),
       ...(expectedFinal === undefined
         ? {}
@@ -374,6 +491,7 @@ function determineBoundaries(
   config: VerificationConfig,
   first: LinkEvidence | undefined,
   last: LinkEvidence | undefined,
+  count: number,
   collector: DiagnosticCollector,
 ): Readonly<{ readonly start: BoundaryState; readonly end: BoundaryState }> {
   if (config.mode === "internal")
@@ -382,8 +500,7 @@ function determineBoundaries(
   let end: BoundaryState = "unverified";
   if (config.mode === "complete") {
     start = first?.position === 0 && first.previous.kind === "none" ? "verified" : "unverified";
-    const countVerified =
-      config.expectedCount !== undefined && config.expectedCount === config.records.length;
+    const countVerified = config.expectedCount !== undefined && config.expectedCount === count;
     if (config.expectedCount === undefined) {
       collector.addCode("BOUNDARY_UNVERIFIED", "chain");
     } else if (!countVerified) {
@@ -451,6 +568,7 @@ function buildSummary(
   config: VerificationConfig,
   first: LinkEvidence | undefined,
   last: LinkEvidence | undefined,
+  count: number,
   diagnostics: readonly Diagnostic[],
   status: "valid" | "invalid" | "indeterminate",
   boundaries: Readonly<{ readonly start: BoundaryState; readonly end: BoundaryState }>,
@@ -462,7 +580,7 @@ function buildSummary(
     sequenceId: config.sequenceId,
     profile: Object.freeze({ ...config.profile }),
     algorithm: config.algorithm,
-    count: config.records.length,
+    count,
     boundaries,
     status,
     diagnostics: diagnosticSummary(diagnostics),
@@ -639,15 +757,6 @@ function verificationFailure<T>(limits: Limits): OperationResult<T> {
   return { ok: false as const, diagnostics: collector.finish() };
 }
 
-function copyUnknownArray(value: unknown[]): readonly unknown[] {
-  const output: unknown[] = [];
-  for (const raw of value) {
-    const item: unknown = raw;
-    output.push(item);
-  }
-  return Object.freeze(output);
-}
-
 function invalidResult(
   diagnostics: readonly Diagnostic[],
   mode: VerificationMode,
@@ -655,8 +764,35 @@ function invalidResult(
   return Object.freeze({
     status: "invalid",
     diagnostics,
+    evidence: undefined,
     stats: buildStats(0, 0, 0, 0, diagnostics),
     boundaries: Object.freeze({ start: "not-applicable", end: "not-applicable" }),
     verificationMode: mode,
   });
+}
+
+function isIterable(value: unknown): value is Iterable<unknown> {
+  if (typeof value !== "object" || value === null) return false;
+  return typeof Reflect.get(value, Symbol.iterator) === "function";
+}
+
+function asIterable(value: unknown, limits: Limits): OperationResult<Iterable<unknown>> {
+  return isIterable(value)
+    ? { ok: true as const, value, diagnostics: Object.freeze([]) }
+    : verificationFailure(limits);
+}
+
+function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
+  if (typeof value !== "object" || value === null) return false;
+  return typeof Reflect.get(value, Symbol.asyncIterator) === "function";
+}
+
+function asAsyncIterable(value: unknown, limits: Limits): OperationResult<AsyncIterable<unknown>> {
+  return isAsyncIterable(value)
+    ? { ok: true as const, value, diagnostics: Object.freeze([]) }
+    : verificationFailure(limits);
+}
+
+function isAborted(signal: AbortSignal | undefined): boolean {
+  return signal?.aborted === true;
 }
