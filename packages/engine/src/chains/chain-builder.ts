@@ -14,8 +14,8 @@ import type { Limits } from "../domain/limits.js";
 import type { OperationResult } from "../domain/operation-result.js";
 import { failure, success } from "../domain/operation-result.js";
 import type { Diagnostic } from "../domain/diagnostic.js";
-import { buildLinkFrame } from "../framing/frame-builders.js";
-import { hashFrame } from "../hashing/hash-frame.js";
+import { buildTrustedLinkFrame } from "../framing/frame-builders.js";
+import { hashTrustedFrame } from "../hashing/hash-frame.js";
 import type { ProfileRegistry } from "../normalization/profile-registry.js";
 import {
   computeRecord,
@@ -114,9 +114,9 @@ export class ChainBuilder {
         ? validateDigest(chainInput.value.previous.value, this.config.algorithm)
         : undefined;
     if (previousDigest !== undefined && !previousDigest.ok) return previousDigest;
-    const linkDigest = hashFrame(
+    const linkDigest = hashTrustedFrame(
       this.config.algorithm,
-      buildLinkFrame(
+      buildTrustedLinkFrame(
         {
           algorithm: this.config.algorithm,
           contextId: this.config.contextId,
@@ -128,7 +128,6 @@ export class ChainBuilder {
         },
         this.options.limits,
       ),
-      this.options.limits,
     );
     if (!linkDigest.ok) return linkDigest;
     const evidence = freezeLinkEvidence({
@@ -139,18 +138,20 @@ export class ChainBuilder {
       previous: chainInput.value.previous,
       linkDigest: linkDigest.value.toHex(),
     });
-    addAll(
-      collector,
-      this.rules.evaluate(
-        Object.freeze({
-          phase: "link",
-          link: evidence,
-          recordId: evidence.recordId,
-          position: evidence.position,
-        }),
-        this.options.limits,
-      ),
-    );
+    if (this.rules.hasRules()) {
+      addAll(
+        collector,
+        this.rules.evaluate(
+          Object.freeze({
+            phase: "link",
+            link: evidence,
+            recordId: evidence.recordId,
+            position: evidence.position,
+          }),
+          this.options.limits,
+        ),
+      );
+    }
     if (collector.hasErrors()) return failure(collector.finish());
     const observed = observedLink(evidence);
     const duplicate = this.duplicates.inspect(observed);
@@ -293,13 +294,15 @@ export class ChainBuilder {
       return failure([{ ...createInternalDiagnostic("EMPTY_CHAIN_FORBIDDEN"), phase: "chain" }]);
     }
     const collector = new DiagnosticCollector(this.options.limits);
-    addAll(
-      collector,
-      this.rules.evaluate(
-        Object.freeze({ phase: "chain", chain: this.snapshot() }),
-        this.options.limits,
-      ),
-    );
+    if (this.rules.hasRules()) {
+      addAll(
+        collector,
+        this.rules.evaluate(
+          Object.freeze({ phase: "chain", chain: this.snapshot() }),
+          this.options.limits,
+        ),
+      );
+    }
     if (collector.hasErrors()) return failure(collector.finish());
     addAll(this.diagnostics, collector.finish());
     const evidence = this.summary("valid", "verified", "verified");

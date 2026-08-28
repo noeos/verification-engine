@@ -17,6 +17,8 @@ const excludedDirectories = new Set([
   "coverage",
   "dist",
   "node_modules",
+  "generated",
+  "reports",
   "temp",
   "tmp",
 ]);

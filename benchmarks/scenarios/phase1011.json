@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "reference": {
+    "platform": "linux-x64",
+    "vcpus": 4,
+    "memoryGiB": 8,
+    "nodeProfile": "node-24-primary"
+  },
+  "thresholds": {
+    "P-01": { "metric": "throughput", "minimum": 80000, "unit": "records/s" },
+    "P-02": { "metric": "throughput", "minimum": 45000, "unit": "records/s" },
+    "P-03": { "metric": "throughput", "minimum": 30000, "unit": "links/s" },
+    "P-04": { "metric": "p95", "maximum": 0.5, "unit": "ms" },
+    "P-05": { "metric": "rssDelta", "maximum": 134217728, "unit": "bytes" },
+    "P-06": { "metric": "pending", "maximum": 2, "unit": "records" },
+    "P-07": { "metric": "p95", "maximum": 250, "unit": "ms" },
+    "P-08": { "metric": "p95", "maximum": 500, "unit": "ms" },
+    "P-09": { "metric": "negativeRatio", "maximum": 2, "unit": "ratio" },
+    "P-10": { "metric": "abortLatency", "maximum": 100, "unit": "ms" }
+  }
+}

@@ -179,6 +179,7 @@ export class DiagnosticCollector {
   }
 
   finish(): readonly Diagnostic[] {
+    if (this.entries.length === 0) return Object.freeze([]);
     const sorted = [...this.entries].sort(compareDiagnostics);
     return Object.freeze(sorted);
   }

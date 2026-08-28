@@ -69,6 +69,7 @@ import {
 import { hashFrame } from "../../packages/engine/dist/esm/hashing/hash-frame.js";
 import { validatePosition } from "../../packages/engine/dist/esm/validation/position-validation.js";
 import { ByteArraySink } from "../../packages/engine/dist/esm/normalization/byte-sink.js";
+import { inspectExactProperties } from "../../packages/engine/dist/esm/validation/object-inspection.js";
 
 void test("phase 3 rejects hostile JSON values without evaluating accessors", () => {
   const getter = {};
@@ -93,6 +94,28 @@ void test("phase 3 rejects hostile JSON values without evaluating accessors", ()
   assert.equal(code(parseJsonText('{"a":1,"a":2}', DEFAULT_LIMITS)), "JSON_DUPLICATE_KEY");
   assert.equal(code(parseJsonText(new Uint8Array([0xc3, 0x28]), DEFAULT_LIMITS)), "UTF8_INVALID");
   assert.equal(code(parseJsonText(revoked.proxy, DEFAULT_LIMITS)), "JSON_SYNTAX_INVALID");
+});
+
+void test("phase 3 fixed-shape inspection preserves descriptor safety", () => {
+  assert.deepEqual(inspectExactProperties({ first: 1, second: 2 }, ["first", "second"]), [1, 2]);
+  const nullPrototype: Record<string, unknown> = { first: 1, second: 2 };
+  Object.setPrototypeOf(nullPrototype, null);
+  assert.deepEqual(inspectExactProperties(nullPrototype, ["first", "second"]), [1, 2]);
+  assert.equal(inspectExactProperties(null, ["first"]), undefined);
+  assert.equal(inspectExactProperties({ first: 1, extra: 2 }, ["first"]), undefined);
+  assert.equal(inspectExactProperties({ first: 1, extra: 2 }, ["first", "second"]), undefined);
+  const symbol = { first: 1 } as Record<string, unknown>;
+  Object.defineProperty(symbol, Symbol("hidden"), { value: true });
+  assert.equal(inspectExactProperties(symbol, ["first"]), undefined);
+  const hidden = {} as Record<string, unknown>;
+  Object.defineProperty(hidden, "first", { value: 1, enumerable: false });
+  assert.equal(inspectExactProperties(hidden, ["first"]), undefined);
+  const getter = {} as Record<string, unknown>;
+  Object.defineProperty(getter, "first", { enumerable: true, get: () => 1 });
+  assert.equal(inspectExactProperties(getter, ["first"]), undefined);
+  const setter = {} as Record<string, unknown>;
+  Object.defineProperty(setter, "first", { enumerable: true, set: () => undefined });
+  assert.equal(inspectExactProperties(setter, ["first"]), undefined);
 });
 
 void test("phase 3 validators enforce exact identifiers, versions and digest lengths", () => {
@@ -615,6 +638,7 @@ void test("phase 3 diagnostics, UTF-8 and byte sinks are bounded and determinist
   orderingCollector.addCode("INPUT_REQUIRED", "input", { position: 1, path: "a" });
   const orderedDiagnostics = orderingCollector.finish().filter(isDiagnostic);
   assert.equal(orderedDiagnostics[0]?.path, "a");
+  assert.equal(orderedDiagnostics.at(-1)?.phase, "output");
   const equalCollector = new DiagnosticCollector(DEFAULT_LIMITS);
   equalCollector.addCode("INPUT_REQUIRED", "input", { position: 1, path: "a" });
   equalCollector.addCode("INPUT_REQUIRED", "input", { position: 1, path: "a" });

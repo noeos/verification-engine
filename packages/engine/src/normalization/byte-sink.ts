@@ -8,7 +8,7 @@ export interface ByteSink {
 }
 
 export class ByteArraySink implements ByteSink {
-  private readonly chunks: Uint8Array[] = [];
+  private buffer = new Uint8Array(0);
 
   private written = 0;
 
@@ -21,18 +21,19 @@ export class ByteArraySink implements ByteSink {
   write(value: Uint8Array): void {
     if (value.length > this.maximum - this.written)
       throw new RangeError("byte sink limit exceeded");
-    const copy = copyBytes(value);
-    this.chunks.push(copy);
-    this.written += copy.length;
+    const required = this.written + value.length;
+    if (required > this.buffer.length) {
+      let capacity = Math.max(256, this.buffer.length);
+      while (capacity < required) capacity = Math.min(this.maximum, capacity * 2);
+      const expanded = new Uint8Array(capacity);
+      expanded.set(this.buffer.subarray(0, this.written));
+      this.buffer = expanded;
+    }
+    this.buffer.set(value, this.written);
+    this.written += value.length;
   }
 
   toBytes(): Uint8Array {
-    const output = new Uint8Array(this.written);
-    let offset = 0;
-    for (const chunk of this.chunks) {
-      output.set(chunk, offset);
-      offset += chunk.length;
-    }
-    return output;
+    return copyBytes(this.buffer.subarray(0, this.written));
   }
 }

@@ -2,6 +2,8 @@
 
 import type { Diagnostic } from "./diagnostic.js";
 
+const EMPTY_DIAGNOSTICS: readonly Diagnostic[] = Object.freeze([]);
+
 /** @public */
 export type OperationResult<T> =
   | {
@@ -15,9 +17,16 @@ export type OperationResult<T> =
     };
 
 export function success<T>(value: T, diagnostics: readonly Diagnostic[] = []): OperationResult<T> {
-  return Object.freeze({ ok: true as const, value, diagnostics: Object.freeze([...diagnostics]) });
+  return Object.freeze({
+    ok: true as const,
+    value,
+    diagnostics: diagnostics.length === 0 ? EMPTY_DIAGNOSTICS : Object.freeze([...diagnostics]),
+  });
 }
 
 export function failure<T>(diagnostics: readonly Diagnostic[]): OperationResult<T> {
-  return Object.freeze({ ok: false as const, diagnostics: Object.freeze([...diagnostics]) });
+  return Object.freeze({
+    ok: false as const,
+    diagnostics: diagnostics.length === 0 ? EMPTY_DIAGNOSTICS : Object.freeze([...diagnostics]),
+  });
 }

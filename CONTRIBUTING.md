@@ -34,7 +34,6 @@ Create it with `git commit --signoff`. By signing off, the contributor certifies
 
 - Pull requests are mandatory; direct and force pushes to `main` are prohibited.
 - CODEOWNERS routes sensitive changes.
-- Critical changes wait at least 24 hours after the final push while the project has one maintainer.
 - CI, conversations, DCO, signatures, generated-output checks, and required evidence must be complete.
 - Squash merge is used while preserving contributor attribution.
 - Security, protocol, dependency, API, legal, and performance changes follow the additional requirements in `docs/00-gobierno/05-mantenimiento-contribuciones.md`.

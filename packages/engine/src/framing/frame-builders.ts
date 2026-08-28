@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { digestBytesForTrustedFrame } from "../domain/digest.js";
 import type { Digest } from "../domain/digest.js";
 import type { Limits } from "../domain/limits.js";
 import type { OperationResult } from "../domain/operation-result.js";
-import { encodeFrame } from "./frame-encoder.js";
+import { encodeFrame, encodeTrustedFrame } from "./frame-encoder.js";
 import type { FrameInput } from "./frame-types.js";
 
 export interface ContentFrameInput {
@@ -106,4 +107,87 @@ export function buildEvidenceFrame(
     ],
   };
   return encodeFrame(frame, limits);
+}
+
+export function buildTrustedContentFrame(
+  input: ContentFrameInput,
+  limits: Limits,
+): OperationResult<Uint8Array> {
+  return encodeTrustedFrame(
+    {
+      kind: "content",
+      fields: [
+        { tag: 1, type: "utf8", value: input.algorithm },
+        { tag: 2, type: "utf8", value: input.profileId },
+        { tag: 3, type: "utf8", value: input.profileVersion },
+        { tag: 4, type: "bytes", value: input.normalizedBytes },
+      ],
+    },
+    limits,
+  );
+}
+
+export function buildTrustedRecordFrame(
+  input: RecordFrameInput,
+  limits: Limits,
+): OperationResult<Uint8Array> {
+  return encodeTrustedFrame(
+    {
+      kind: "record",
+      fields: [
+        { tag: 1, type: "utf8", value: input.algorithm },
+        { tag: 2, type: "utf8", value: input.contextId },
+        { tag: 3, type: "utf8", value: input.recordId },
+        { tag: 4, type: "utf8", value: input.profileId },
+        { tag: 5, type: "utf8", value: input.profileVersion },
+        { tag: 6, type: "uint64", value: input.normalizedByteLength },
+        { tag: 7, type: "bytes", value: digestBytesForTrustedFrame(input.contentDigest) },
+      ],
+    },
+    limits,
+  );
+}
+
+export function buildTrustedLinkFrame(
+  input: LinkFrameInput,
+  limits: Limits,
+): OperationResult<Uint8Array> {
+  return encodeTrustedFrame(
+    {
+      kind: "link",
+      fields: [
+        { tag: 1, type: "utf8", value: input.algorithm },
+        { tag: 2, type: "utf8", value: input.contextId },
+        { tag: 3, type: "utf8", value: input.sequenceId },
+        { tag: 4, type: "uint64", value: input.position },
+        { tag: 5, type: "utf8", value: input.recordId },
+        { tag: 6, type: "bytes", value: digestBytesForTrustedFrame(input.recordDigest) },
+        input.previousLinkDigest === undefined
+          ? { tag: 7, type: "none" }
+          : {
+              tag: 7,
+              type: "bytes",
+              value: digestBytesForTrustedFrame(input.previousLinkDigest),
+            },
+      ],
+    },
+    limits,
+  );
+}
+
+export function buildTrustedEvidenceFrame(
+  input: EvidenceFrameInput,
+  limits: Limits,
+): OperationResult<Uint8Array> {
+  return encodeTrustedFrame(
+    {
+      kind: "evidence",
+      fields: [
+        { tag: 1, type: "utf8", value: input.algorithm },
+        { tag: 2, type: "utf8", value: input.schemaUrn },
+        { tag: 3, type: "bytes", value: input.evidenceJcsBytes },
+      ],
+    },
+    limits,
+  );
 }

@@ -14,6 +14,7 @@ import { inspectPlainObject } from "../validation/object-inspection.js";
 import { validateProfileVersion } from "../validation/version-validation.js";
 
 const ruleIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/u;
+const EMPTY_DIAGNOSTICS: readonly Diagnostic[] = Object.freeze([]);
 export class RuleSet {
   private constructor(private readonly rules: readonly Rule[]) {
     Object.freeze(this);
@@ -39,6 +40,7 @@ export class RuleSet {
   }
 
   evaluate(context: RuleContext, limits: Limits): readonly Diagnostic[] {
+    if (this.rules.length === 0) return EMPTY_DIAGNOSTICS;
     const collector = new DiagnosticCollector(limits);
     for (const rule of this.rules) {
       if (!rule.phases.includes(context.phase)) continue;
@@ -73,6 +75,10 @@ export class RuleSet {
       }
     }
     return collector.finish();
+  }
+
+  hasRules(): boolean {
+    return this.rules.length !== 0;
   }
 
   toArray(): readonly Rule[] {
