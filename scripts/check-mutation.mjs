@@ -47,8 +47,8 @@ const mutants = [
   {
     name: "complete-boundary-count",
     file: "packages/engine/src/chains/verify-chain.ts",
-    from: "config.expectedCount !== undefined && config.expectedCount === config.records.length;",
-    to: "config.expectedCount === undefined || config.expectedCount === config.records.length;",
+    from: "const countVerified = config.expectedCount !== undefined && config.expectedCount === count;",
+    to: "const countVerified = config.expectedCount === undefined || config.expectedCount === count;",
   },
   {
     name: "link-previous-digest",
