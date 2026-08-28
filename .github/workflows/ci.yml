@@ -142,6 +142,11 @@ jobs:
           path: artifacts/current-runtime
       - name: Extract reviewed runtime build
         run: tar --extract --gzip --file artifacts/current-runtime/current-runtime.tgz
+      - name: Recreate package layout for runtime smoke
+        run: |
+          mkdir --parents node_modules/@noeos
+          ln --symbolic --force "$GITHUB_WORKSPACE/packages/engine" node_modules/@noeos/verification-engine
+          ln --symbolic --force "$GITHUB_WORKSPACE/packages/cli" node_modules/@noeos/verification-engine-cli
       - name: Run compatibility smoke without installing on an unsupported line
         run: node scripts/check-runtime-smoke.mjs
 
