@@ -19,11 +19,14 @@ void test("engine has no runtime dependencies and CLI only references the engine
 });
 
 void test("foundation source cannot perform I/O, networking, process execution, or logging", async () => {
-  for (const path of ["packages/engine/src/index.ts", "packages/cli/src/main.ts"]) {
-    const source = await readFile(resolve(root, path), "utf8");
-    assert.doesNotMatch(
-      source,
-      /node:(?:fs|net|http|https|tls|dgram|child_process)|console\.|process\./u,
-    );
-  }
+  const engineSource = await readFile(resolve(root, "packages/engine/src/index.ts"), "utf8");
+  assert.doesNotMatch(
+    engineSource,
+    /node:(?:fs|net|http|https|tls|dgram|child_process)|console\.|process\./u,
+  );
+  const cliSource = await readFile(resolve(root, "packages/cli/src/main.ts"), "utf8");
+  assert.doesNotMatch(
+    cliSource,
+    /node:(?:net|http|https|tls|dgram|child_process)|console\.|eval\(|import\(/u,
+  );
 });

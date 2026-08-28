@@ -19,8 +19,19 @@ void test("ESM and CommonJS engine builds expose the same reviewed contract surf
   assert.ok(typeof common === "object" && common !== null);
   assert.ok("DIAGNOSTIC_CODES" in esm);
   assert.ok("DIAGNOSTIC_CODES" in common);
-  assert.deepEqual(Object.keys(esm), ["DIAGNOSTIC_CODES"]);
-  assert.deepEqual(Object.keys(common), ["DIAGNOSTIC_CODES"]);
+  const publicValues = [
+    "BUILTIN_PROFILES",
+    "CHAIN_SUMMARY_EVIDENCE_SCHEMA",
+    "DIAGNOSTIC_CODES",
+    "DIAGNOSTIC_SCHEMA",
+    "EngineConfigurationError",
+    "LINK_EVIDENCE_SCHEMA",
+    "RECORD_EVIDENCE_SCHEMA",
+    "createEngine",
+  ];
+  assert.deepEqual(Object.keys(esm).sort(), publicValues.sort());
+  assert.deepEqual(Object.keys(common).sort(), publicValues.sort());
+  assert.deepEqual(Object.keys(esm).sort(), Object.keys(common).sort());
   assert.deepEqual(esm.DIAGNOSTIC_CODES, common.DIAGNOSTIC_CODES);
 });
 

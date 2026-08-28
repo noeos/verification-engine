@@ -2,6 +2,7 @@
 
 import type { Diagnostic } from "./diagnostic.js";
 
+/** @public */
 export type OperationResult<T> =
   | {
       readonly ok: true;

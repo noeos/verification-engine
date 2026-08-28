@@ -13,6 +13,7 @@ export interface ExternalDuplicateIndex {
   observe(batch: readonly DuplicateObservation[]): unknown;
 }
 
+/** @public */
 export type DuplicatePolicy =
   | { readonly kind: "none" }
   | { readonly kind: "window"; readonly size: number }

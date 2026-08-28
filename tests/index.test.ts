@@ -7,6 +7,8 @@ import "./contract/vectors.contract.test.js";
 import "./contract/phase34.contract.test.js";
 import "./contract/phase56.contract.test.js";
 import "./contract/phase56-negative.contract.test.js";
+import "./contract/phase789.contract.test.js";
+import "./e2e/phase789-cli.e2e.test.js";
 import "./property/project.property.test.js";
 import "./property/contracts.property.test.js";
 import "./property/phase34.property.test.js";

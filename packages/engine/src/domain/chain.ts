@@ -5,11 +5,13 @@ import type { DuplicatePolicy } from "./duplicate-policy.js";
 import type { PreviousLink } from "./evidence.js";
 import type { Rule } from "./rule.js";
 
+/** @public */
 export interface ProfileReference {
   readonly id: string;
   readonly version: string;
 }
 
+/** @public */
 export interface RecordInput {
   readonly contextId: string;
   readonly recordId: string;
@@ -28,6 +30,7 @@ export interface ChainConfig {
   readonly allowEmpty?: boolean;
 }
 
+/** @public */
 export interface ChainRecordInput {
   readonly recordId: string;
   readonly payload: unknown;
@@ -35,6 +38,7 @@ export interface ChainRecordInput {
   readonly previous: PreviousLink;
 }
 
+/** @public */
 export interface ChainSnapshot {
   readonly contextId: string;
   readonly sequenceId: string;

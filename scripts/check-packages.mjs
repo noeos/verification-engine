@@ -26,11 +26,14 @@ const workspaces = [
       "NOTICE",
       "README.md",
       "dist/cjs/index.js",
+      "dist/cjs/profiles.js",
       "dist/cjs/package.json",
       "dist/esm/index.js",
+      "dist/esm/profiles.js",
       "dist/esm/schemas.js",
       "dist/esm/vectors.js",
       "dist/types/index.d.ts",
+      "dist/types/profiles.d.ts",
       "dist/types/schemas.d.ts",
       "dist/types/vectors.d.ts",
       "package.json",
@@ -98,10 +101,11 @@ for (const workspace of workspaces) {
   if (manifest.private !== true) {
     throw new Error(`${workspace.name} unexpectedly became publishable`);
   }
-  if (manifest.bin !== undefined) {
-    throw new Error(
-      `${workspace.name} must not expose a binary before its release contract allows it`,
-    );
+  if (workspace.name.endsWith("-cli") && manifest.bin?.["noeos-ve"] !== "./dist/esm/main.js") {
+    throw new Error(`${workspace.name} must expose the governed noeos-ve binary`);
+  }
+  if (!workspace.name.endsWith("-cli") && manifest.bin !== undefined) {
+    throw new Error(`${workspace.name} must not expose a binary`);
   }
 }
 

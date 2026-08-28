@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ChainSnapshot } from "../domain/chain.js";
+import type { StreamOptions } from "../domain/stream.js";
 import type { DuplicateObservation, DuplicatePolicy } from "../domain/duplicate-policy.js";
 import type {
   ChainSummaryEvidence,
@@ -57,6 +58,7 @@ export class ChainBuilder {
   private readonly diagnostics: DiagnosticCollector;
   private count = 0;
   private readonly duplicates;
+  private operationActive = false;
 
   private constructor(
     private readonly config: ValidatedChainConfig,
@@ -76,6 +78,12 @@ export class ChainBuilder {
   }
 
   append(input: unknown): OperationResult<LinkEvidence> {
+    if (this.operationActive)
+      return failure([createInternalDiagnostic("CONCURRENT_USE_FORBIDDEN")]);
+    return this.appendCore(input);
+  }
+
+  private appendCore(input: unknown): OperationResult<LinkEvidence> {
     this.requireActive();
     const chainInput = validateChainRecordInput(input, this.config.algorithm, this.options.limits);
     if (!chainInput.ok) return chainInput;
@@ -163,6 +171,109 @@ export class ChainBuilder {
     return success(evidence, collector.finish());
   }
 
+  appendAll(input: Iterable<unknown>): OperationResult<ChainSummaryEvidence> {
+    if (this.operationActive)
+      return failure([createInternalDiagnostic("CONCURRENT_USE_FORBIDDEN")]);
+    this.requireActive();
+    try {
+      for (const item of input) {
+        const result = this.append(item);
+        if (!result.ok) return result;
+      }
+    } catch {
+      this.state = "failed";
+      return failure([createStreamDiagnostic("INPUT_STREAM_FAILED")]);
+    }
+    return this.finalize();
+  }
+
+  async appendStream(
+    input: AsyncIterable<unknown>,
+    options: StreamOptions = {},
+  ): Promise<OperationResult<ChainSummaryEvidence>> {
+    if (this.operationActive)
+      return failure([createInternalDiagnostic("CONCURRENT_USE_FORBIDDEN")]);
+    this.requireActive();
+    this.operationActive = true;
+    let iterator: AsyncIterator<unknown> | undefined;
+    let terminal = false;
+    let closeIterator = false;
+    try {
+      if (isAborted(options.signal)) {
+        this.state = "aborted";
+        terminal = true;
+        return failure([createStreamDiagnostic("OPERATION_ABORTED")]);
+      }
+      try {
+        iterator = input[Symbol.asyncIterator]();
+      } catch {
+        this.state = "failed";
+        terminal = true;
+        return failure([createStreamDiagnostic("INPUT_STREAM_FAILED")]);
+      }
+      for (;;) {
+        if (isAborted(options.signal)) {
+          this.state = "aborted";
+          terminal = true;
+          closeIterator = true;
+          return failure([createStreamDiagnostic("OPERATION_ABORTED")]);
+        }
+        let next: IteratorResult<unknown>;
+        try {
+          next = await iterator.next();
+        } catch {
+          this.state = "failed";
+          terminal = true;
+          closeIterator = true;
+          return failure([createStreamDiagnostic("INPUT_STREAM_FAILED")]);
+        }
+        if (next.done === true) {
+          if (isAborted(options.signal)) {
+            this.state = "aborted";
+            terminal = true;
+            closeIterator = true;
+            return failure([createStreamDiagnostic("OPERATION_ABORTED")]);
+          }
+          const finalized = this.finalize();
+          terminal = true;
+          return finalized;
+        }
+        const appended = this.appendCore(next.value);
+        if (!appended.ok) {
+          this.state = "failed";
+          terminal = true;
+          closeIterator = true;
+          return appended;
+        }
+        if (isAborted(options.signal)) {
+          this.state = "aborted";
+          terminal = true;
+          closeIterator = true;
+          return failure([createStreamDiagnostic("OPERATION_ABORTED")]);
+        }
+        if (options.onEvidence !== undefined) {
+          try {
+            await options.onEvidence(appended.value);
+          } catch {
+            this.state = "failed";
+            terminal = true;
+            closeIterator = true;
+            return failure([createStreamDiagnostic("OUTPUT_SINK_FAILED")]);
+          }
+        }
+      }
+    } finally {
+      if (iterator !== undefined && (closeIterator || !terminal)) {
+        try {
+          await iterator.return?.();
+        } catch {
+          this.state = "failed";
+        }
+      }
+      this.operationActive = false;
+    }
+  }
+
   snapshot(): ChainSnapshot {
     this.requireReadable();
     return Object.freeze({
@@ -196,7 +307,8 @@ export class ChainBuilder {
     return success(evidence, this.diagnostics.finish());
   }
 
-  abort(): void {
+  abort(reason?: string): void {
+    void reason;
     if (this.state === "active") this.state = "aborted";
   }
 
@@ -483,7 +595,12 @@ function invalidConfig<T>(limits: Limits): OperationResult<T> {
 }
 
 function createInternalDiagnostic(
-  code: "EMPTY_CHAIN_FORBIDDEN" | "INTERNAL_INVARIANT_BROKEN" = "INTERNAL_INVARIANT_BROKEN",
+  code:
+    | "EMPTY_CHAIN_FORBIDDEN"
+    | "INTERNAL_INVARIANT_BROKEN"
+    | "CONCURRENT_USE_FORBIDDEN"
+    | "BUILDER_FINALIZED"
+    | "BUILDER_FAILED" = "INTERNAL_INVARIANT_BROKEN",
 ): Diagnostic {
   return Object.freeze({
     $schema: "urn:noeos:verification-engine:diagnostic:1" as const,
@@ -492,4 +609,20 @@ function createInternalDiagnostic(
     phase: "chain" as const,
     messageKey: code.toLowerCase().replaceAll("_", "."),
   });
+}
+
+function createStreamDiagnostic(
+  code: "INPUT_STREAM_FAILED" | "OUTPUT_SINK_FAILED" | "OPERATION_ABORTED",
+): Diagnostic {
+  return Object.freeze({
+    $schema: "urn:noeos:verification-engine:diagnostic:1" as const,
+    code,
+    severity: code === "OPERATION_ABORTED" ? "info" : "error",
+    phase: "output" as const,
+    messageKey: code.toLowerCase().replaceAll("_", "."),
+  });
+}
+
+function isAborted(signal: AbortSignal | undefined): boolean {
+  return signal?.aborted === true;
 }

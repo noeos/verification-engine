@@ -40,12 +40,12 @@ try {
 
   await writeFile(
     resolve(temporaryDirectory, "esm.mjs"),
-    'import { DIAGNOSTIC_CODES } from "@noeos/verification-engine";\nimport { SCHEMA_ASSETS } from "@noeos/verification-engine/schemas";\nimport { VECTOR_SET } from "@noeos/verification-engine/vectors";\nimport * as cli from "@noeos/verification-engine-cli";\nif (DIAGNOSTIC_CODES.length !== 64 || SCHEMA_ASSETS.length !== 5 || VECTOR_SET.version !== "1.0.0" || VECTOR_SET.files.length !== 4 || Object.keys(cli).length !== 0) process.exit(1);\n',
+    'import { BUILTIN_PROFILES, DIAGNOSTIC_CODES, createEngine } from "@noeos/verification-engine";\nimport { BUILTIN_PROFILES as PROFILE_SUBPATH } from "@noeos/verification-engine/profiles";\nimport { SCHEMA_ASSETS } from "@noeos/verification-engine/schemas";\nimport { VECTOR_SET } from "@noeos/verification-engine/vectors";\nimport * as cli from "@noeos/verification-engine-cli";\nif (DIAGNOSTIC_CODES.length !== 64 || SCHEMA_ASSETS.length !== 5 || VECTOR_SET.version !== "1.0.0" || VECTOR_SET.files.length !== 4 || BUILTIN_PROFILES.length !== 2 || PROFILE_SUBPATH.length !== 2 || typeof createEngine !== "function" || Object.keys(cli).length !== 0) process.exit(1);\n',
     "utf8",
   );
   await writeFile(
     resolve(temporaryDirectory, "common.cjs"),
-    'const engine = require("@noeos/verification-engine");\nconst schemas = require("@noeos/verification-engine/schemas");\nconst vectors = require("@noeos/verification-engine/vectors");\nif (engine.DIAGNOSTIC_CODES.length !== 64 || schemas.SCHEMA_ASSETS.length !== 5 || vectors.VECTOR_SET.files.length !== 4) process.exit(1);\n',
+    'const engine = require("@noeos/verification-engine");\nconst profiles = require("@noeos/verification-engine/profiles");\nconst schemas = require("@noeos/verification-engine/schemas");\nconst vectors = require("@noeos/verification-engine/vectors");\nif (engine.DIAGNOSTIC_CODES.length !== 64 || schemas.SCHEMA_ASSETS.length !== 5 || vectors.VECTOR_SET.files.length !== 4 || engine.BUILTIN_PROFILES.length !== 2 || profiles.BUILTIN_PROFILES.length !== 2 || typeof engine.createEngine !== "function") process.exit(1);\n',
     "utf8",
   );
   await writeFile(

@@ -2,13 +2,16 @@
 
 import type { DiagnosticDetails, DiagnosticPhase, DiagnosticSeverity } from "./diagnostic.js";
 
+/** @public */
 export type RulePhase = Exclude<DiagnosticPhase, "output">;
 
+/** @public */
 export interface ReadonlyByteView {
   readonly byteLength: number;
   copySlice(start?: number, end?: number): Uint8Array;
 }
 
+/** @public */
 export interface RuleFinding {
   readonly messageKey: string;
   readonly path?: string;
@@ -16,6 +19,7 @@ export interface RuleFinding {
   readonly severity?: DiagnosticSeverity;
 }
 
+/** @public */
 export interface RuleContext {
   readonly phase: RulePhase;
   readonly input?: Readonly<Record<string, unknown>>;
@@ -27,6 +31,7 @@ export interface RuleContext {
   readonly position?: number;
 }
 
+/** @public */
 export interface Rule {
   readonly id: string;
   readonly version: string;

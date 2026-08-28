@@ -24,6 +24,11 @@
       "import": "./dist/esm/schemas.js",
       "require": "./dist/cjs/schemas.js"
     },
+    "./profiles": {
+      "types": "./dist/types/profiles.d.ts",
+      "import": "./dist/esm/profiles.js",
+      "require": "./dist/cjs/profiles.js"
+    },
     "./vectors": {
       "types": "./dist/types/vectors.d.ts",
       "import": "./dist/esm/vectors.js",

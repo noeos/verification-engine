@@ -3,8 +3,11 @@
 import type { AlgorithmId } from "./algorithm-id.js";
 import type { Diagnostic } from "./diagnostic.js";
 
+/** @public */
 export const RECORD_EVIDENCE_SCHEMA = "urn:noeos:verification-engine:record-evidence:1" as const;
+/** @public */
 export const LINK_EVIDENCE_SCHEMA = "urn:noeos:verification-engine:link-evidence:1" as const;
+/** @public */
 export const CHAIN_SUMMARY_EVIDENCE_SCHEMA =
   "urn:noeos:verification-engine:chain-summary:1" as const;
 
@@ -13,6 +16,7 @@ export interface EvidenceProfile {
   readonly version: string;
 }
 
+/** @public */
 export interface RecordEvidenceFields {
   readonly protocolVersion: 1;
   readonly contextId: string;
@@ -24,13 +28,16 @@ export interface RecordEvidenceFields {
   readonly recordDigest: string;
 }
 
+/** @public */
 export interface RecordEvidence extends RecordEvidenceFields {
   readonly $schema: typeof RECORD_EVIDENCE_SCHEMA;
 }
 
+/** @public */
 export type PreviousLink =
   { readonly kind: "none" } | { readonly kind: "digest"; readonly value: string };
 
+/** @public */
 export interface LinkEvidence extends RecordEvidenceFields {
   readonly $schema: typeof LINK_EVIDENCE_SCHEMA;
   readonly sequenceId: string;
@@ -39,9 +46,12 @@ export interface LinkEvidence extends RecordEvidenceFields {
   readonly linkDigest: string;
 }
 
+/** @public */
 export type BoundaryState = "verified" | "unverified" | "not-applicable";
+/** @public */
 export type VerificationStatus = "valid" | "invalid" | "indeterminate" | "aborted";
 
+/** @public */
 export interface DiagnosticSummary {
   readonly errors: number;
   readonly warnings: number;
@@ -49,6 +59,7 @@ export interface DiagnosticSummary {
   readonly truncated: boolean;
 }
 
+/** @public */
 export interface ChainSummaryEvidence {
   readonly $schema: typeof CHAIN_SUMMARY_EVIDENCE_SCHEMA;
   readonly protocolVersion: 1;
@@ -66,8 +77,10 @@ export interface ChainSummaryEvidence {
   readonly diagnostics: DiagnosticSummary;
 }
 
+/** @public */
 export type Evidence = RecordEvidence | LinkEvidence | ChainSummaryEvidence;
 
+/** @public */
 export interface VerificationStats {
   readonly recordsSeen: number;
   readonly recordsVerified: number;
@@ -78,12 +91,14 @@ export interface VerificationStats {
   readonly info: number;
 }
 
+/** @public */
 export type VerificationMode = "complete" | "fragment" | "internal";
 
+/** @public */
 export interface VerificationResult<T> {
   readonly status: VerificationStatus;
   readonly diagnostics: readonly Diagnostic[];
-  readonly evidence?: T;
+  readonly evidence: T | undefined;
   readonly stats: VerificationStats;
   readonly boundaries: Readonly<{ readonly start: BoundaryState; readonly end: BoundaryState }>;
   readonly verificationMode: VerificationMode;
