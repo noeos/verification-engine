@@ -44,6 +44,7 @@ import {
   encodeUtf8,
   decodeUtf8,
   hasWellFormedUnicode,
+  utf8ByteLength,
 } from "../../packages/engine/dist/esm/validation/utf8-validation.js";
 import {
   createDiagnostic,
@@ -645,6 +646,8 @@ void test("phase 3 diagnostics, UTF-8 and byte sinks are bounded and determinist
   assert.equal(equalCollector.finish().length, 2);
   assert.ok(hasWellFormedUnicode("😀"));
   assert.ok(!hasWellFormedUnicode("\udfff"));
+  assert.equal(utf8ByteLength("😀"), 4);
+  assert.equal(utf8ByteLength("\ud800"), undefined);
   assert.ok(encodeUtf8("abc", 3).ok);
   assert.equal(code(encodeUtf8("abcd", 3)), "INPUT_LIMIT_EXCEEDED");
   assert.equal(code(encodeUtf8("\ud800", 3)), "UTF8_INVALID");
@@ -658,6 +661,32 @@ void test("phase 3 diagnostics, UTF-8 and byte sinks are bounded and determinist
   assert.throws(() => {
     sink.write(new Uint8Array([3]));
   });
+  const optimizedSink = new ByteArraySink(8, 2);
+  optimizedSink.writeByte(0x41);
+  optimizedSink.writeAscii("BC");
+  optimizedSink.writeText("é");
+  assert.deepEqual([...optimizedSink.toBytes()], [0x41, 0x42, 0x43, 0xc3, 0xa9]);
+  assert.deepEqual([...optimizedSink.takeBytes()], [0x41, 0x42, 0x43, 0xc3, 0xa9]);
+  assert.equal(optimizedSink.byteLength, 0);
+  assert.throws(() => new ByteArraySink(1, -1));
+  assert.throws(() => {
+    optimizedSink.writeByte(0x100);
+  });
+  assert.throws(() => {
+    optimizedSink.writeAscii("é");
+  });
+
+  const throwingProfile = Object.freeze({
+    ...rawBytesProfile,
+    validate: () => ({ ok: true as const, value: new Uint8Array(0), diagnostics: [] }),
+    normalize: () => {
+      throw new Error("synthetic normalization failure");
+    },
+  });
+  assert.equal(
+    code(normalizeToBytes(throwingProfile, new Uint8Array(0), DEFAULT_LIMITS)),
+    "NORMALIZATION_FAILED",
+  );
   const warningCollector = new DiagnosticCollector(DEFAULT_LIMITS);
   warningCollector.addCode("ALGORITHM_VERIFY_ONLY", "output");
   assert.ok(!warningCollector.hasErrors());

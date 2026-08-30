@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
+import { types } from "node:util";
 import type { RecordEvidence } from "../domain/evidence.js";
 import { RECORD_EVIDENCE_SCHEMA } from "../domain/evidence.js";
 import type { Limits } from "../domain/limits.js";
@@ -23,6 +24,7 @@ import {
   validateRecordId,
 } from "../validation/identifier-validation.js";
 import { inspectExactProperties } from "../validation/object-inspection.js";
+import { failureWithCode } from "../validation/result-helpers.js";
 import { validateProfileVersion } from "../validation/version-validation.js";
 
 export interface RecordServiceOptions {
@@ -33,6 +35,9 @@ export interface RecordServiceOptions {
 
 export interface ComputedRecord {
   readonly evidence: RecordEvidence;
+  /** Internal trusted values reused by chain construction before public encoding. */
+  readonly contentDigest: Digest;
+  readonly recordDigest: Digest;
 }
 
 interface ValidatedRecordInput {
@@ -89,6 +94,9 @@ export function computeRecord(
       recordId: validated.value.recordId,
     });
     return failure(collector.finish());
+  }
+  if (isBuiltinRawProfile(profile) && !hasRules) {
+    return computeBuiltinRawRecord(validated.value, options);
   }
   const profileInput = profile.validate(validated.value.payload, options.limits);
   if (!profileInput.ok) return profileInput;
@@ -164,7 +172,73 @@ export function computeRecord(
     );
   }
   if (collector.hasErrors()) return failure(collector.finish());
-  return success(Object.freeze({ evidence }), collector.finish());
+  return success(
+    Object.freeze({
+      evidence,
+      contentDigest: contentDigest.value,
+      recordDigest: recordDigest.value,
+    }),
+    collector.finish(),
+  );
+}
+
+function computeBuiltinRawRecord(
+  input: ValidatedRecordInput,
+  options: RecordServiceOptions,
+): OperationResult<ComputedRecord> {
+  if (types.isProxy(input.payload) || !(input.payload instanceof Uint8Array)) {
+    return failureWithCode("INPUT_TYPE_INVALID", "input");
+  }
+  if (input.payload.length > options.limits.maxPayloadBytes) {
+    return failureWithCode("INPUT_LIMIT_EXCEEDED", "input");
+  }
+  const contentDigest = hashTrustedFrame(
+    input.algorithm,
+    buildTrustedContentFrame(
+      {
+        algorithm: input.algorithm,
+        profileId: input.profile.id,
+        profileVersion: input.profile.version,
+        normalizedBytes: input.payload,
+      },
+      options.limits,
+    ),
+  );
+  if (!contentDigest.ok) return contentDigest;
+  const recordDigest = hashTrustedFrame(
+    input.algorithm,
+    buildTrustedRecordFrame(
+      {
+        algorithm: input.algorithm,
+        contextId: input.contextId,
+        recordId: input.recordId,
+        profileId: input.profile.id,
+        profileVersion: input.profile.version,
+        normalizedByteLength: input.payload.length,
+        contentDigest: contentDigest.value,
+      },
+      options.limits,
+    ),
+  );
+  if (!recordDigest.ok) return recordDigest;
+  const evidence = freezeRecordEvidence({
+    $schema: RECORD_EVIDENCE_SCHEMA,
+    protocolVersion: 1,
+    contextId: input.contextId,
+    recordId: input.recordId,
+    profile: input.profile,
+    algorithm: input.algorithm,
+    normalizedByteLength: input.payload.length,
+    contentDigest: contentDigest.value.toHex(),
+    recordDigest: recordDigest.value.toHex(),
+  });
+  return success(
+    Object.freeze({
+      evidence,
+      contentDigest: contentDigest.value,
+      recordDigest: recordDigest.value,
+    }),
+  );
 }
 
 export function verifyComputedRecord(
@@ -261,6 +335,10 @@ function validateProfileReference(
 
 function inputPayloadIsBytes(value: unknown): value is Uint8Array {
   return value instanceof Uint8Array;
+}
+
+function isBuiltinRawProfile(profile: { readonly id: { readonly value: string } }): boolean {
+  return profile.id.value === "dev.noeos.raw-bytes";
 }
 
 function freezeInputView(value: ValidatedRecordInput): Readonly<Record<string, unknown>> {

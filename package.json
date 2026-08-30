@@ -31,6 +31,7 @@
     "governance:check": "node scripts/check-governance.mjs",
     "perf:smoke": "npm run build && node scripts/benchmark-phase1011.mjs",
     "perf:check": "npm run build && NOEOS_BENCH_OFFICIAL=1 node scripts/benchmark-phase1011.mjs",
+    "perf:baseline": "node scripts/record-performance-baseline.mjs",
     "profile:phase1011": "npm run build && node scripts/profile-phase1011.mjs",
     "github:audit": "node scripts/audit-github.mjs",
     "license:check": "node scripts/check-licenses.mjs",

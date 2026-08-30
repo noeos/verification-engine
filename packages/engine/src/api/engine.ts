@@ -79,22 +79,28 @@ export class EngineConfigurationError extends TypeError {
 }
 
 class EngineImpl implements Engine {
+  private readonly recordServiceOptions: RecordServiceOptions;
+
   constructor(
     private readonly limits: Limits,
     private readonly profiles: ProfileRegistry,
     private readonly rules: RuleSet,
     private readonly defaultPolicy: EngineOptions["duplicatePolicy"],
     private readonly observer: EngineOptions["onEvent"],
-  ) {}
+  ) {
+    this.recordServiceOptions = Object.freeze({ limits, profiles, rules });
+  }
 
   hashRecord(input: Parameters<typeof hashRecord>[0]): ReturnType<typeof hashRecord> {
-    this.emit({
-      name: "operation.started",
-      operation: "hash-record",
-      recordsSeen: 0,
-      bytesNormalized: 0,
-    });
-    const result = hashRecord(input, this.recordOptions());
+    if (this.observer !== undefined) {
+      this.emit({
+        name: "operation.started",
+        operation: "hash-record",
+        recordsSeen: 0,
+        bytesNormalized: 0,
+      });
+    }
+    const result = hashRecord(input, this.recordServiceOptions);
     this.emitResult(result, "hash-record");
     return result;
   }
@@ -102,7 +108,7 @@ class EngineImpl implements Engine {
   verifyRecord(input: VerifyRecordInput): VerificationResult<RecordEvidence> {
     const evidence = parseRecordEvidenceInput(input.evidence, this.limits);
     if (!evidence.ok) return invalidRecordResult(evidence.diagnostics);
-    const result = verifyComputedRecord(evidence.value, input.payload, this.recordOptions());
+    const result = verifyComputedRecord(evidence.value, input.payload, this.recordServiceOptions);
     const diagnostics = result.diagnostics;
     const status = result.ok ? "valid" : "invalid";
     return Object.freeze({
@@ -173,10 +179,6 @@ class EngineImpl implements Engine {
     return digestEvidence(input, this.limits);
   }
 
-  private recordOptions(): RecordServiceOptions {
-    return Object.freeze({ limits: this.limits, profiles: this.profiles, rules: this.rules });
-  }
-
   private rulesAsUnknown(): readonly unknown[] {
     return this.rules.toArray();
   }
@@ -191,6 +193,7 @@ class EngineImpl implements Engine {
   }
 
   private emitResult<T>(result: OperationResult<T>, operation: string): void {
+    if (this.observer === undefined) return;
     if (result.ok)
       this.emit({ name: "operation.completed", operation, recordsSeen: 1, bytesNormalized: 0 });
     for (const diagnostic of result.diagnostics) {
