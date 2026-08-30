@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import { access, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { isAbsolute, resolve } from "node:path";
 
@@ -42,15 +42,6 @@ for (const thresholdResult of Object.entries(scenario.thresholds)) {
     throw new Error(`Baseline candidate does not pass ${id}`);
   }
 }
-try {
-  await access(baselinePath);
-  if (process.env.NOEOS_ALLOW_BASELINE_REPLACE !== "1") {
-    throw new Error("Baseline already exists; replacement requires explicit approval");
-  }
-} catch (error) {
-  if (error?.code !== "ENOENT") throw error;
-}
-
 const baseline = {
   version: 1,
   scenarioSha256: report.scenarioSha256,
@@ -61,7 +52,20 @@ const baseline = {
   node: report.node,
   results: report.results,
 };
-await writeFile(baselinePath, stableJson(baseline), "utf8");
+const allowReplace = process.env.NOEOS_ALLOW_BASELINE_REPLACE === "1";
+try {
+  await writeFile(baselinePath, stableJson(baseline), {
+    encoding: "utf8",
+    flag: allowReplace ? "w" : "wx",
+  });
+} catch (error) {
+  if (error?.code === "EEXIST") {
+    throw new Error("Baseline already exists; replacement requires explicit approval", {
+      cause: error,
+    });
+  }
+  throw error;
+}
 process.stdout.write(`Performance baseline recorded at ${baselinePath}\n`);
 
 function sha256(bytes) {
