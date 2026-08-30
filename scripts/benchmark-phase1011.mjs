@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { readFile, writeFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpus, totalmem } from "node:os";
+import { cpus, release, totalmem } from "node:os";
 import { performance } from "node:perf_hooks";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createEngine } from "../packages/engine/dist/esm/index.js";
@@ -23,16 +23,40 @@ const iterations = integerOption(
   10,
   1_000_000,
 );
+const seed = integerOption("NOEOS_BENCH_SEED", 0x4e4f454f, 0, 0xffffffff);
+const algorithms = shuffle(["sha-256", "sha-384", "sha-512"], seed);
 const engine = createEngine({ duplicatePolicy: { kind: "none" } });
 const results = [];
+const payload = jcsPayload();
+const rawRecordInputs = new Map(
+  ["sha-256", "sha-384", "sha-512"].map((algorithm) => [
+    algorithm,
+    recordInput("dev.noeos.raw-bytes", new Uint8Array(1024), algorithm),
+  ]),
+);
+const jcsRecordInputs = new Map(
+  ["sha-256", "sha-384", "sha-512"].map((algorithm) => [
+    algorithm,
+    recordInput("dev.noeos.jcs", payload, algorithm),
+  ]),
+);
 
 if (official && (process.platform !== "linux" || process.arch !== "x64")) {
   throw new Error("official performance gates require the reviewed linux-x64 runner");
 }
+if (official && (samples < scenario.measurement.throughputMinimumSamples || iterations < 10_000)) {
+  throw new Error("official performance gates require the reviewed sample and iteration counts");
+}
 
-await runThroughput("P-01", () => record("dev.noeos.raw-bytes", new Uint8Array(1024), "sha-256"));
-await runThroughput("P-02", () => record("dev.noeos.jcs", jcsPayload(), "sha-256"));
-await runChainThroughput();
+for (const algorithm of algorithms) {
+  await runThroughput(algorithm === "sha-256" ? "P-01" : `P-01-${algorithm}`, () =>
+    engine.hashRecord(rawRecordInputs.get(algorithm)),
+  );
+  await runThroughput(algorithm === "sha-256" ? "P-02" : `P-02-${algorithm}`, () =>
+    engine.hashRecord(jcsRecordInputs.get(algorithm)),
+  );
+  await runChainThroughput(algorithm, algorithm === "sha-256" ? "P-03" : `P-03-${algorithm}`);
+}
 await runLatency();
 
 if (official) {
@@ -49,26 +73,27 @@ if (official) {
 await runNegativeRatio();
 await runAbortLatency();
 
+const baseline = await loadBaseline();
+const environment = await collectEnvironment();
 const report = {
-  version: 1,
+  version: 2,
   official,
   scenarioSha256,
   reference: scenario.reference,
-  environment: {
-    platform: process.platform,
-    arch: process.arch,
-    cpus: cpus().length,
-    totalMemory: totalmem(),
-  },
-  commit: process.env.GITHUB_SHA ?? "local",
+  environment,
+  commit: gitOutput(["rev-parse", "HEAD"]) ?? process.env.GITHUB_SHA ?? "local",
+  cleanTree: gitOutput(["status", "--porcelain"]) === "",
   node: process.version,
   samples,
   iterations,
+  seed,
+  algorithmOrder: algorithms,
   results,
+  relative: baseline === undefined ? undefined : compareBaseline(results, baseline.results),
 };
 const serializedReport = `${JSON.stringify(report)}\n`;
 if (process.env.NOEOS_BENCH_REPORT !== undefined) {
-  await writeFile(resolve(projectRoot, process.env.NOEOS_BENCH_REPORT), serializedReport, "utf8");
+  await writeFile(resolveRepoPath(process.env.NOEOS_BENCH_REPORT), serializedReport, "utf8");
 }
 process.stdout.write(serializedReport);
 if (official) enforce(report);
@@ -76,7 +101,10 @@ if (official) enforce(report);
 async function runThroughput(id, operation) {
   const values = [];
   for (let sample = 0; sample < samples; sample += 1) {
-    for (let index = 0; index < Math.max(100, Math.floor(iterations / 10)); index += 1) operation();
+    for (let index = 0; index < Math.max(100, Math.floor(iterations / 10)); index += 1) {
+      const warmup = operation();
+      if (!warmup.ok) throw new Error(`${id} warmup correctness failure`);
+    }
     const started = performance.now();
     for (let index = 0; index < iterations; index += 1) {
       const result = operation();
@@ -87,30 +115,30 @@ async function runThroughput(id, operation) {
   results.push({ id, metric: "throughput", ...sampleSummary(values) });
 }
 
-async function runChainThroughput() {
+async function runChainThroughput(algorithm, id) {
   const values = [];
   for (let sample = 0; sample < samples; sample += 1) {
     const builder = engine.createChain({
       contextId: "benchmark.context",
-      sequenceId: `benchmark-${sample}`,
+      sequenceId: `benchmark-${algorithm}-${sample}`,
       profile: { id: "dev.noeos.jcs", version: "1.0.0" },
-      algorithm: "sha-256",
+      algorithm,
     });
     const started = performance.now();
     let previous = { kind: "none" };
     for (let position = 0; position < iterations; position += 1) {
       const result = builder.append({
         recordId: `record-${position}`,
-        payload: jcsPayload(),
+        payload,
         position,
         previous,
       });
-      if (!result.ok) throw new Error("P-03 correctness failure");
+      if (!result.ok) throw new Error(`${id} correctness failure`);
       previous = { kind: "digest", value: result.value.linkDigest };
     }
     values.push(iterations / ((performance.now() - started) / 1000));
   }
-  results.push({ id: "P-03", metric: "throughput", ...sampleSummary(values) });
+  results.push({ id, algorithm, metric: "throughput", ...sampleSummary(values) });
 }
 
 async function runLatency() {
@@ -118,7 +146,7 @@ async function runLatency() {
   const count = official ? 10_000 : Math.min(iterations, 1_000);
   for (let index = 0; index < count; index += 1) {
     const started = performance.now();
-    const result = record("dev.noeos.jcs", jcsPayload(), "sha-256");
+    const result = engine.hashRecord(jcsRecordInputs.get("sha-256"));
     if (!result.ok) throw new Error("P-04 correctness failure");
     values.push(performance.now() - started);
   }
@@ -148,8 +176,12 @@ async function runMemoryStream() {
   let emitted = 0;
   let peakRss = before.rss;
   const rssSamples = [];
+  let produced = 0;
+  let maxPending = 0;
   async function* source() {
     for (let position = 0; position < records; position += 1) {
+      produced += 1;
+      maxPending = Math.max(maxPending, produced - emitted);
       yield { recordId: `memory-${position}`, payload, position, previous };
     }
   }
@@ -178,6 +210,7 @@ async function runMemoryStream() {
     activeResourcesAfter: activeAfter,
     rssSamples,
     emitted,
+    pending: maxPending,
   });
 }
 
@@ -197,8 +230,12 @@ async function runTenMillion() {
   const activeBefore = activeResources();
   let peakRss = before.rss;
   const rssSamples = [];
+  let produced = 0;
+  let maxPending = 0;
   async function* source() {
     for (let position = 0; position < records; position += 1) {
+      produced += 1;
+      maxPending = Math.max(maxPending, produced - emitted);
       yield { recordId: `empty-${position}`, payload, position, previous };
     }
   }
@@ -220,7 +257,7 @@ async function runTenMillion() {
   results.push({
     id: "P-06",
     metric: "pending",
-    pending: 1,
+    pending: maxPending,
     rssDelta: peakRss - before.rss,
     emitted,
     heapDelta: after.heapUsed - before.heapUsed,
@@ -296,7 +333,7 @@ async function runNegativeRatio() {
     ...fixture.evidence,
     linkDigest: `${fixture.evidence.linkDigest[0] === "0" ? "1" : "0"}${fixture.evidence.linkDigest.slice(1)}`,
   };
-  const count = official ? Math.min(iterations, 1_000) : Math.min(iterations, 100);
+  const count = official ? 10_000 : Math.min(iterations, 100);
   const validValues = [];
   const negativeValues = [];
   for (let index = 0; index < count; index += 1) {
@@ -317,7 +354,7 @@ async function runNegativeRatio() {
 
 async function runAbortLatency() {
   const values = [];
-  const count = official ? 10 : 3;
+  const count = official ? 10_000 : 3;
   for (let sample = 0; sample < count; sample += 1) {
     const controller = new AbortController();
     const payload = new Uint8Array(0);
@@ -388,8 +425,8 @@ async function verifyLink(evidence, payload, expectedStatus) {
   return performance.now() - started;
 }
 
-function record(profile, payload, algorithm) {
-  return engine.hashRecord({
+function recordInput(profile, payload, algorithm) {
+  return Object.freeze({
     contextId: "benchmark.context",
     recordId: `record-${String(payload.length)}`,
     payload,
@@ -400,6 +437,108 @@ function record(profile, payload, algorithm) {
 
 function jcsPayload() {
   return { amount: "123.45", description: "x".repeat(900), items: [1, 2, 3], marker: true };
+}
+
+async function loadBaseline() {
+  const configured =
+    process.env.NOEOS_BENCH_BASELINE ?? "benchmarks/baselines/phase1011-linux-x64.json";
+  const path = resolveRepoPath(configured);
+  try {
+    return JSON.parse(await readFile(path, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return undefined;
+    throw new Error(`Unable to read performance baseline: ${path}`, { cause: error });
+  }
+}
+
+async function collectEnvironment() {
+  return {
+    platform: process.platform,
+    arch: process.arch,
+    kernel: release(),
+    cpus: cpus().length,
+    cpuModel: cpus()[0]?.model ?? "unknown",
+    totalMemory: totalmem(),
+    governor: (await readOptional("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"))?.trim(),
+    microcode: (await readOptional("/proc/cpuinfo"))?.match(/^microcode\s*:\s*(.+)$/mu)?.[1],
+  };
+}
+
+async function readOptional(path) {
+  try {
+    return await readFile(path, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function gitOutput(arguments_) {
+  try {
+    return execFileSync("git", arguments_, { cwd: projectRoot, encoding: "utf8" }).trim();
+  } catch {
+    return undefined;
+  }
+}
+
+function resolveRepoPath(candidate) {
+  if (isAbsolute(candidate)) throw new Error("benchmark paths must be relative to the repository");
+  const path = resolve(projectRoot, candidate);
+  const fromRoot = relative(projectRoot, path);
+  if (
+    fromRoot.length === 0 ||
+    fromRoot === ".." ||
+    fromRoot.startsWith(`..${sep}`) ||
+    isAbsolute(fromRoot)
+  ) {
+    throw new Error("benchmark paths must remain inside the repository");
+  }
+  return path;
+}
+
+function compareBaseline(currentResults, baselineResults) {
+  const baselineById = new Map(baselineResults.map((result) => [result.id, result]));
+  const comparisons = [];
+  for (const current of currentResults) {
+    const baselineResult = baselineById.get(current.id);
+    if (baselineResult === undefined) continue;
+    const currentValue = primaryMetric(current);
+    const baselineValue = primaryMetric(baselineResult);
+    if (currentValue === undefined || baselineValue === undefined || baselineValue <= 0) continue;
+    const threshold = scenario.thresholds[current.id];
+    if (threshold === undefined) continue;
+    const regression =
+      threshold.minimum !== undefined
+        ? 1 - currentValue / baselineValue
+        : currentValue / baselineValue - 1;
+    comparisons.push({
+      id: current.id,
+      current: currentValue,
+      baseline: baselineValue,
+      regression,
+    });
+  }
+  return comparisons;
+}
+
+function primaryMetric(result) {
+  if (result.metric === "throughput") return result.median;
+  if (result.id === "P-05") return result.rssDelta;
+  if (result.id === "P-06") return result.pending;
+  if (result.id === "P-09") return result.ratio;
+  if (result.id === "P-10") return result.abortLatency;
+  return result.p95;
+}
+
+function shuffle(values, initialState) {
+  const output = [...values];
+  let state = initialState >>> 0;
+  for (let index = output.length - 1; index > 0; index -= 1) {
+    state = Math.imul(state ^ (state >>> 16), 0x45d9f3b) >>> 0;
+    state = Math.imul(state ^ (state >>> 16), 0x45d9f3b) >>> 0;
+    const swap = state % (index + 1);
+    [output[index], output[swap]] = [output[swap], output[index]];
+  }
+  return output;
 }
 
 function enforce(report) {
@@ -414,6 +553,13 @@ function enforce(report) {
   if (report.environment.cpus < scenario.reference.vcpus) {
     failures.push("official benchmark runner has fewer CPUs than the reviewed reference");
   }
+  if (report.environment.totalMemory < scenario.reference.memoryGiB * 1024 ** 3) {
+    failures.push("official benchmark runner has less memory than the reviewed reference");
+  }
+  if (report.environment.governor !== "performance") {
+    failures.push("official benchmark runner must use the performance CPU governor");
+  }
+  if (!report.cleanTree) failures.push("official benchmark requires a clean repository tree");
   for (const result of report.results) {
     const threshold = scenario.thresholds[result.id];
     if (threshold === undefined || result.status !== undefined) continue;
@@ -436,6 +582,19 @@ function enforce(report) {
       }
       if (result.rssDelta > scenario.thresholds["P-05"].maximum) {
         failures.push(`${result.id} rss stability gate failed: ${String(result.rssDelta)}`);
+      }
+    }
+  }
+  if (report.relative !== undefined) {
+    for (const comparison of report.relative) {
+      if (comparison.regression > scenario.relativeGates.blockAbove) {
+        failures.push(
+          `${comparison.id} relative regression exceeds ${(scenario.relativeGates.blockAbove * 100).toFixed(0)}%`,
+        );
+      } else if (comparison.regression > scenario.relativeGates.analysisAbove) {
+        process.stderr.write(
+          `${comparison.id} relative regression exceeds ${(scenario.relativeGates.analysisAbove * 100).toFixed(0)}%; analysis required\n`,
+        );
       }
     }
   }

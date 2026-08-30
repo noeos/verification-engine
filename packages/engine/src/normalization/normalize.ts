@@ -27,12 +27,12 @@ export function normalizeToBytes<I>(
 ): OperationResult<NormalizedBytes> {
   const validated = profile.validate(input, limits);
   if (!validated.ok) return validated;
-  const sink = new ByteArraySink(limits.maxPayloadBytes);
+  const sink = new ByteArraySink(limits.maxPayloadBytes, initialCapacity(input));
   try {
     const normalized = profile.normalize(validated.value, sink, limits);
     if (!normalized.ok) return normalized;
     if (normalized.value.byteLength !== sink.byteLength) return normalizationFailure(limits);
-    const bytes = sink.toBytes();
+    const bytes = sink.takeBytes();
     return {
       ok: true,
       value: Object.freeze({ bytes, stats: normalized.value }),
@@ -48,14 +48,14 @@ export function normalizeRegisteredToBytes(
   input: unknown,
   limits: Limits,
 ): OperationResult<NormalizedBytes> {
-  const sink = new ByteArraySink(limits.maxPayloadBytes);
+  const sink = new ByteArraySink(limits.maxPayloadBytes, initialCapacity(input));
   try {
     const normalized = (profile.normalizeValidated ?? profile.normalize)(input, sink, limits);
     if (!normalized.ok) return normalized;
     if (normalized.value.byteLength !== sink.byteLength) return normalizationFailure(limits);
     return {
       ok: true,
-      value: Object.freeze({ bytes: sink.toBytes(), stats: normalized.value }),
+      value: Object.freeze({ bytes: sink.takeBytes(), stats: normalized.value }),
       diagnostics: normalized.diagnostics,
     };
   } catch {
@@ -67,4 +67,8 @@ function normalizationFailure(limits: Limits): OperationResult<NormalizedBytes> 
   const collector = new DiagnosticCollector(limits);
   collector.addCode("NORMALIZATION_FAILED", "normalization");
   return failure(collector.finish());
+}
+
+function initialCapacity(input: unknown): number {
+  return input instanceof Uint8Array ? input.length : 0;
 }

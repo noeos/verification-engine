@@ -7,7 +7,7 @@ import type { OperationResult } from "../domain/operation-result.js";
 import { failure, success } from "../domain/operation-result.js";
 import { DiagnosticCollector } from "./diagnostic-collector.js";
 import { inspectPlainObject, isDataPropertyDescriptor } from "./object-inspection.js";
-import { hasWellFormedUnicode, encodeUtf8 } from "./utf8-validation.js";
+import { utf8ByteLength } from "./utf8-validation.js";
 
 export function validateJsonValue(value: unknown, limits: Limits): OperationResult<JsonValue> {
   const collector = new DiagnosticCollector(limits);
@@ -56,12 +56,12 @@ function validateString(
   limits: Limits,
   collector: DiagnosticCollector,
 ): string | undefined {
-  if (!hasWellFormedUnicode(value)) {
+  const byteLength = utf8ByteLength(value);
+  if (byteLength === undefined) {
     collector.addCode("UTF8_INVALID", "input", { path });
     return undefined;
   }
-  const encoded = encodeUtf8(value, limits.maxStringBytes);
-  if (!encoded.ok) {
+  if (byteLength > limits.maxStringBytes) {
     collector.addCode("INPUT_LIMIT_EXCEEDED", "input", { path });
     return undefined;
   }
@@ -163,12 +163,16 @@ function validateObject(
     const propertyPath = `${path}/${escapeJsonPointer(key)}`;
     const item = validateValue(property, propertyPath, depth + 1, limits, collector, active);
     if (item === undefined) return undefined;
-    Object.defineProperty(output, key, {
-      configurable: false,
-      enumerable: true,
-      value: item,
-      writable: false,
-    });
+    if (key === "__proto__") {
+      Object.defineProperty(output, key, {
+        configurable: false,
+        enumerable: true,
+        value: item,
+        writable: false,
+      });
+    } else {
+      output[key] = item;
+    }
   }
   return Object.freeze(output);
 }

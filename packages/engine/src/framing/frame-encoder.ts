@@ -3,7 +3,7 @@
 import { types } from "node:util";
 import type { Limits } from "../domain/limits.js";
 import type { OperationResult } from "../domain/operation-result.js";
-import { failure } from "../domain/operation-result.js";
+import { failure, success } from "../domain/operation-result.js";
 import { DiagnosticCollector } from "../validation/diagnostic-collector.js";
 import { encodeUtf8 } from "../validation/utf8-validation.js";
 import { inspectPlainObject, isPlainObject } from "../validation/object-inspection.js";
@@ -20,6 +20,12 @@ const KIND_CODES: Readonly<Record<FrameKind, number>> = Object.freeze({
 });
 const MAGIC_BYTES = new TextEncoder().encode(MAGIC);
 const UTF8_ENCODER = new TextEncoder();
+const SHA256_BYTES = UTF8_ENCODER.encode("sha-256");
+const SHA384_BYTES = UTF8_ENCODER.encode("sha-384");
+const SHA512_BYTES = UTF8_ENCODER.encode("sha-512");
+const RAW_PROFILE_BYTES = UTF8_ENCODER.encode("dev.noeos.raw-bytes");
+const JCS_PROFILE_BYTES = UTF8_ENCODER.encode("dev.noeos.jcs");
+const PROFILE_VERSION_BYTES = UTF8_ENCODER.encode("1.0.0");
 
 export function encodeFrame(input: unknown, limits: Limits): OperationResult<Uint8Array> {
   const frameInput = validateFrameInput(input);
@@ -60,12 +66,12 @@ export function encodeFrame(input: unknown, limits: Limits): OperationResult<Uin
 /** Internal fast path. Callers must have completed positive validation. */
 export function encodeTrustedFrame(input: FrameInput, limits: Limits): OperationResult<Uint8Array> {
   const kindCode = KIND_CODES[input.kind];
-  const encodedFields: EncodedField[] = [];
+  const encodedFields: TrustedEncodedField[] = [];
   let total = MAGIC_BYTES.length + 3 + 2;
   try {
     for (const field of input.fields) {
       const encoded = encodeTrustedField(field, limits);
-      total += 2 + 1 + 8 + encoded.value.length;
+      total += 2 + 1 + 8 + encoded.length;
       encodedFields.push(encoded);
     }
     if (input.fields.length > 0xffff || total > limits.maxPayloadBytes) {
@@ -84,12 +90,17 @@ export function encodeTrustedFrame(input: FrameInput, limits: Limits): Operation
       output[offset++] = (field.tag >>> 8) & 0xff;
       output[offset++] = field.tag & 0xff;
       output[offset++] = field.typeCode;
-      writeUint64(output, offset, field.value.length);
+      writeUint64(output, offset, field.length);
       offset += 8;
-      output.set(field.value, offset);
-      offset += field.value.length;
+      if (field.value instanceof Uint8Array) {
+        output.set(field.value, offset);
+        offset += field.length;
+      } else {
+        writeUint64(output, offset, field.value);
+        offset += 8;
+      }
     }
-    return { ok: true, value: output, diagnostics: Object.freeze([]) };
+    return success(output);
   } catch {
     return frameFailure("FRAME_LENGTH_INVALID", limits);
   }
@@ -170,16 +181,35 @@ function encodeField(field: FrameField, limits: Limits): OperationResult<Encoded
   return successField(field.tag, 0x04, new Uint8Array(0));
 }
 
-function encodeTrustedField(field: FrameField, limits: Limits): EncodedField {
-  if (field.type === "bytes") return { tag: field.tag, typeCode: 0x01, value: field.value };
+function encodeTrustedField(field: FrameField, limits: Limits): TrustedEncodedField {
+  if (field.type === "bytes") {
+    return { tag: field.tag, typeCode: 0x01, value: field.value, length: field.value.length };
+  }
   if (field.type === "utf8") {
-    const value = UTF8_ENCODER.encode(field.value);
+    const value = trustedUtf8(field.value);
     if (value.length > limits.maxPayloadBytes) throw new RangeError("frame field too large");
-    return { tag: field.tag, typeCode: 0x02, value };
+    return { tag: field.tag, typeCode: 0x02, value, length: value.length };
   }
   if (field.type === "uint64")
-    return { tag: field.tag, typeCode: 0x03, value: uint64Bytes(field.value) };
-  return { tag: field.tag, typeCode: 0x04, value: new Uint8Array(0) };
+    return { tag: field.tag, typeCode: 0x03, value: field.value, length: 8 };
+  return { tag: field.tag, typeCode: 0x04, value: 0, length: 0 };
+}
+
+function trustedUtf8(value: string): Uint8Array {
+  if (value === "sha-256") return SHA256_BYTES;
+  if (value === "sha-384") return SHA384_BYTES;
+  if (value === "sha-512") return SHA512_BYTES;
+  if (value === "dev.noeos.raw-bytes") return RAW_PROFILE_BYTES;
+  if (value === "dev.noeos.jcs") return JCS_PROFILE_BYTES;
+  if (value === "1.0.0") return PROFILE_VERSION_BYTES;
+  return UTF8_ENCODER.encode(value);
+}
+
+interface TrustedEncodedField {
+  readonly tag: number;
+  readonly typeCode: number;
+  readonly value: Uint8Array | number;
+  readonly length: number;
 }
 
 function successField(

@@ -21,6 +21,23 @@ export function hasWellFormedUnicode(value: string): boolean {
   return true;
 }
 
+export function utf8ByteLength(value: string): number | undefined {
+  let length = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit <= 0x7f) length += 1;
+    else if (codeUnit <= 0x7ff) length += 2;
+    else if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (Number.isNaN(next) || next < 0xdc00 || next > 0xdfff) return undefined;
+      length += 4;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) return undefined;
+    else length += 3;
+  }
+  return length;
+}
+
 export function encodeUtf8(value: unknown, maxBytes: number): OperationResult<Uint8Array> {
   if (typeof value !== "string" || !hasWellFormedUnicode(value)) {
     return failureWithCode("UTF8_INVALID", "input");

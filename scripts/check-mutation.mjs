@@ -88,8 +88,8 @@ const mutants = [
     name: "normalization-length-guard",
     critical: true,
     file: "packages/engine/src/normalization/normalize.ts",
-    from: "if (normalized.value.byteLength !== sink.byteLength) return normalizationFailure(limits);\n    const bytes = sink.toBytes();",
-    to: "if (normalized.value.byteLength === sink.byteLength) return normalizationFailure(limits);\n    const bytes = sink.toBytes();",
+    from: "if (normalized.value.byteLength !== sink.byteLength) return normalizationFailure(limits);\n    const bytes = sink.takeBytes();",
+    to: "if (normalized.value.byteLength === sink.byteLength) return normalizationFailure(limits);\n    const bytes = sink.takeBytes();",
   },
   {
     name: "chain-position-step",

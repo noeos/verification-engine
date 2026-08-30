@@ -7,12 +7,13 @@ import { ProfileId } from "../domain/identifiers.js";
 import { ProfileVersion } from "../domain/version.js";
 import { success } from "../domain/operation-result.js";
 import { validateJsonValue } from "../validation/json-value-validation.js";
+import { ByteArraySink } from "./byte-sink.js";
 import type { ByteSink } from "./byte-sink.js";
 import type { NormalizationProfile, NormalizationStats } from "./profile.js";
 
 const JCS_PROFILE_ID = ProfileId.fromValidated("dev.noeos.jcs");
 const JCS_PROFILE_VERSION = ProfileVersion.fromValidated("1.0.0");
-const UTF8_ENCODER = new TextEncoder();
+const EMPTY = "";
 
 export const jcsProfile: NormalizationProfile<JsonValue> = Object.freeze({
   id: JCS_PROFILE_ID,
@@ -29,11 +30,11 @@ export const jcsProfile: NormalizationProfile<JsonValue> = Object.freeze({
 
 function writeValue(value: JsonValue, sink: ByteSink): void {
   if (value === null) {
-    writeText("null", sink);
+    writeAscii("null", sink);
     return;
   }
   if (typeof value === "boolean") {
-    writeText(value ? "true" : "false", sink);
+    writeAscii(value ? "true" : "false", sink);
     return;
   }
   if (typeof value === "number") {
@@ -41,7 +42,7 @@ function writeValue(value: JsonValue, sink: ByteSink): void {
     return;
   }
   if (typeof value === "string") {
-    writeText(stringToJcs(value), sink);
+    writeJsonString(value, sink);
     return;
   }
   if (isJsonArray(value)) {
@@ -56,30 +57,48 @@ function isJsonArray(value: JsonValue): value is JsonArray {
 }
 
 function writeArray(value: JsonArray, sink: ByteSink): void {
-  writeText("[", sink);
+  writeAscii("[", sink);
   for (let index = 0; index < value.length; index += 1) {
-    if (index > 0) writeText(",", sink);
+    if (index > 0) writeAscii(",", sink);
     const item = value[index];
     if (item === undefined) throw new TypeError("invalid JSON array");
     writeValue(item, sink);
   }
-  writeText("]", sink);
+  writeAscii("]", sink);
 }
 
 function writeObject(value: JsonObject, sink: ByteSink): void {
   const keys = Object.keys(value).sort(compareUtf16);
-  writeText("{", sink);
+  writeAscii("{", sink);
   let first = true;
   for (const key of keys) {
-    if (!first) writeText(",", sink);
+    if (!first) writeAscii(",", sink);
     first = false;
     const item = value[key];
     if (item === undefined) throw new TypeError("invalid JSON object");
-    writeText(stringToJcs(key), sink);
-    writeText(":", sink);
+    writeJsonString(key, sink);
+    writeAscii(":", sink);
     writeValue(item, sink);
   }
-  writeText("}", sink);
+  writeAscii("}", sink);
+}
+
+function writeJsonString(value: string, sink: ByteSink): void {
+  let escaped = false;
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit <= 0x1f || codeUnit === 0x22 || codeUnit === 0x5c) {
+      escaped = true;
+      break;
+    }
+  }
+  if (!escaped) {
+    writeAscii('"', sink);
+    writeText(value, sink);
+    writeAscii('"', sink);
+    return;
+  }
+  writeText(stringToJcs(value), sink);
 }
 
 function stringToJcs(value: string): string {
@@ -125,7 +144,13 @@ function numberToJcs(value: number): string {
 }
 
 function writeText(value: string, sink: ByteSink): void {
-  sink.write(UTF8_ENCODER.encode(value));
+  if (sink instanceof ByteArraySink) sink.writeText(value);
+  else sink.write(new TextEncoder().encode(value));
+}
+
+function writeAscii(value: string, sink: ByteSink): void {
+  if (sink instanceof ByteArraySink) sink.writeAscii(value);
+  else sink.write(new TextEncoder().encode(value || EMPTY));
 }
 
 function compareUtf16(left: string, right: string): number {

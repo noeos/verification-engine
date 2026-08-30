@@ -59,6 +59,7 @@ jobs:
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
       - name: Execute absolute and relative budgets
         env:
+          NODE_OPTIONS: --expose-gc
           NOEOS_BENCH_REPORT: benchmarks/reports/phase1011-${{ github.sha }}.json
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run perf:check
       - name: Collect CPU and heap profiles

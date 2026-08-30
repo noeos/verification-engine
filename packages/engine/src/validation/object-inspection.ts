@@ -39,9 +39,10 @@ export function inspectExactProperties(
   if (Object.getOwnPropertySymbols(value).length !== 0) return undefined;
   const ownNames = Object.getOwnPropertyNames(value);
   if (ownNames.length !== names.length) return undefined;
+  const descriptors = Object.getOwnPropertyDescriptors(value);
   const values: unknown[] = [];
   for (const name of names) {
-    const descriptor = Object.getOwnPropertyDescriptor(value, name);
+    const descriptor = descriptors[name];
     if (descriptor === undefined) return undefined;
     if (
       descriptor.enumerable !== true ||

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "reference": {
     "platform": "linux-x64",
     "vcpus": 4,
@@ -17,5 +17,17 @@
     "P-08": { "metric": "p95", "maximum": 500, "unit": "ms" },
     "P-09": { "metric": "negativeRatio", "maximum": 2, "unit": "ratio" },
     "P-10": { "metric": "abortLatency", "maximum": 100, "unit": "ms" }
+  },
+  "relativeGates": {
+    "analysisAbove": 0.05,
+    "blockAbove": 0.1,
+    "memoryAnalysisAbove": 0.05,
+    "memoryBlockAbove": 0.1
+  },
+  "measurement": {
+    "throughputMinimumSamples": 10,
+    "latencyMinimumOperations": 10000,
+    "algorithms": ["sha-256", "sha-384", "sha-512"],
+    "fixtureSizesBytes": [0, 64, 1024, 16384, 1048576, 16777216]
   }
 }

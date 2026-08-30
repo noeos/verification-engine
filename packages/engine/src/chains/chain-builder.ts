@@ -59,6 +59,7 @@ export class ChainBuilder {
   private count = 0;
   private readonly duplicates;
   private operationActive = false;
+  private readonly recordServiceOptions: RecordServiceOptions;
 
   private constructor(
     private readonly config: ValidatedChainConfig,
@@ -67,6 +68,11 @@ export class ChainBuilder {
   ) {
     this.diagnostics = new DiagnosticCollector(options.limits);
     this.duplicates = createDuplicateDetector(config.duplicatePolicy, options.limits);
+    this.recordServiceOptions = Object.freeze({
+      limits: options.limits,
+      profiles: options.profiles,
+      rules,
+    });
   }
 
   static create(input: unknown, options: ChainBuilderOptions): OperationResult<ChainBuilder> {
@@ -103,12 +109,10 @@ export class ChainBuilder {
         profile: this.config.profile,
         algorithm: this.config.algorithm,
       },
-      this.recordOptions(),
+      this.recordServiceOptions,
     );
     if (!record.ok) return record;
     addAll(collector, record.diagnostics);
-    const recordDigest = validateDigest(record.value.evidence.recordDigest, this.config.algorithm);
-    if (!recordDigest.ok) return recordDigest;
     const previousDigest =
       chainInput.value.previous.kind === "digest"
         ? validateDigest(chainInput.value.previous.value, this.config.algorithm)
@@ -123,7 +127,7 @@ export class ChainBuilder {
           sequenceId: this.config.sequenceId,
           position: chainInput.value.position,
           recordId: chainInput.value.recordId,
-          recordDigest: recordDigest.value,
+          recordDigest: record.value.recordDigest,
           ...(previousDigest === undefined ? {} : { previousLinkDigest: previousDigest.value }),
         },
         this.options.limits,
@@ -313,14 +317,6 @@ export class ChainBuilder {
   abort(reason?: string): void {
     void reason;
     if (this.state === "active") this.state = "aborted";
-  }
-
-  private recordOptions(): RecordServiceOptions {
-    return Object.freeze({
-      limits: this.options.limits,
-      profiles: this.options.profiles,
-      rules: this.rules,
-    });
   }
 
   private commit(evidence: LinkEvidence): void {

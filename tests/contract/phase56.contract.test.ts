@@ -92,6 +92,21 @@ void test("phase 5 rejects ambiguous record inputs before hashing", () => {
         {
           contextId: "ctx",
           recordId: "record",
+          payload: new Proxy(new Uint8Array([1]), {}),
+          profile: { id: "dev.noeos.raw-bytes", version: "1.0.0" },
+          algorithm: "sha-256",
+        },
+        recordOptions,
+      ),
+    ),
+    "INPUT_TYPE_INVALID",
+  );
+  assert.equal(
+    code(
+      hashRecord(
+        {
+          contextId: "ctx",
+          recordId: "record",
           payload: { value: 1 },
           profile: { id: "dev.noeos.raw-bytes", version: "1.0.0" },
           algorithm: "sha-256",
