@@ -14,4 +14,4 @@ The repository is governed by the approved normative corpus in `docs/`. Authorit
 
 ## Enforcement
 
-Branch rules, CODEOWNERS, DCO, signed commits, required CI, critical-path waiting periods, release environments, and external audits enforce the documented process. A temporary limitation is recorded as a blocking risk; it is never described as compliance.
+Branch rules, CODEOWNERS, DCO, signed commits, required CI, release environments, and external audits enforce the documented process. A temporary limitation is recorded as a blocking risk; it is never described as compliance.

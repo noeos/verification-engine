@@ -4,6 +4,8 @@ import { types } from "node:util";
 
 export type DataProperty = readonly [name: string, value: unknown];
 
+export type ExactPropertyValues = readonly unknown[];
+
 interface DataPropertyDescriptor extends PropertyDescriptor {
   readonly value: unknown;
 }
@@ -26,6 +28,32 @@ export function inspectPlainObject(value: unknown): readonly DataProperty[] | un
     entries.push([name, descriptor.value]);
   }
   return Object.freeze(entries);
+}
+
+/** Internal fixed-shape inspection that preserves the no-getter/no-proxy boundary. */
+export function inspectExactProperties(
+  value: unknown,
+  names: readonly string[],
+): ExactPropertyValues | undefined {
+  if (!isPlainObject(value)) return undefined;
+  if (Object.getOwnPropertySymbols(value).length !== 0) return undefined;
+  const ownNames = Object.getOwnPropertyNames(value);
+  if (ownNames.length !== names.length) return undefined;
+  const values: unknown[] = [];
+  for (const name of names) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, name);
+    if (descriptor === undefined) return undefined;
+    if (
+      descriptor.enumerable !== true ||
+      descriptor.get !== undefined ||
+      descriptor.set !== undefined ||
+      !isDataPropertyDescriptor(descriptor)
+    ) {
+      return undefined;
+    }
+    values.push(descriptor.value);
+  }
+  return values;
 }
 
 export function isDataPropertyDescriptor(

@@ -3,8 +3,8 @@
 import type { Digest } from "../domain/digest.js";
 import type { Limits } from "../domain/limits.js";
 import type { OperationResult } from "../domain/operation-result.js";
-import { buildEvidenceFrame } from "../framing/frame-builders.js";
-import { hashFrame } from "../hashing/hash-frame.js";
+import { buildTrustedEvidenceFrame } from "../framing/frame-builders.js";
+import { hashTrustedFrame } from "../hashing/hash-frame.js";
 import { jcsProfile } from "../normalization/jcs-profile.js";
 import { normalizeToBytes } from "../normalization/normalize.js";
 import { parseEvidence } from "./evidence-parser.js";
@@ -14,9 +14,9 @@ export function digestEvidence(value: unknown, limits: Limits): OperationResult<
   if (!evidence.ok) return evidence;
   const normalized = normalizeToBytes(jcsProfile, evidence.value, limits);
   if (!normalized.ok) return normalized;
-  return hashFrame(
+  return hashTrustedFrame(
     evidence.value.algorithm,
-    buildEvidenceFrame(
+    buildTrustedEvidenceFrame(
       {
         algorithm: evidence.value.algorithm,
         schemaUrn: evidence.value.$schema,
@@ -24,6 +24,5 @@ export function digestEvidence(value: unknown, limits: Limits): OperationResult<
       },
       limits,
     ),
-    limits,
   );
 }

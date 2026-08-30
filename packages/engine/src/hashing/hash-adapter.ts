@@ -45,6 +45,15 @@ export function hashBytes(
   return success(sinkResult.value.digest());
 }
 
+export function hashValidatedBytes(
+  algorithm: AlgorithmId,
+  input: Uint8Array,
+): OperationResult<Digest> {
+  const sink = new NodeHashSink(algorithm);
+  sink.update(input);
+  return success(sink.digest());
+}
+
 export function hashChunks(
   algorithm: unknown,
   chunks: Iterable<Uint8Array>,
@@ -85,7 +94,7 @@ class NodeHashSink implements HashSink {
   digest(): Digest {
     if (this.finalized) throw new Error("hash already finalized");
     this.finalized = true;
-    const bytes = Uint8Array.from(this.hash.digest());
+    const bytes = this.hash.digest();
     assert.equal(bytes.length, digestLength(this.algorithm), "unexpected digest length");
     return DigestValue.fromValidated(this.algorithm, bytes);
   }

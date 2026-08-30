@@ -53,13 +53,13 @@ jobs:
       - name: Install from reviewed lockfile
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
       - name: Repository and documentation policy
-        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run policy:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run docs:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run contracts:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run vectors:check
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run policy:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run governance:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run docs:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run contracts:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run vectors:check
       - name: Formatting and lint
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run build && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run format:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run lint
       - name: Strict TypeScript and tests
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run build && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run typecheck && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run test:coverage
       - name: Fuzz smoke and critical mutation gates
-        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run fuzz:smoke && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run mutation:check
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run security:boundaries && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run fuzz:smoke && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run mutation:check && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run security:drill
       - name: Public API report
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run api:check
       - name: Licenses and package boundary

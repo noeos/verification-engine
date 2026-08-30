@@ -16,8 +16,8 @@ import type { Limits } from "../domain/limits.js";
 import type { Diagnostic } from "../domain/diagnostic.js";
 import type { Digest } from "../domain/digest.js";
 import type { OperationResult } from "../domain/operation-result.js";
-import { buildLinkFrame } from "../framing/frame-builders.js";
-import { hashFrame } from "../hashing/hash-frame.js";
+import { buildTrustedLinkFrame } from "../framing/frame-builders.js";
+import { hashTrustedFrame } from "../hashing/hash-frame.js";
 import type { ProfileRegistry } from "../normalization/profile-registry.js";
 import { parseLinkEvidence } from "../evidence/evidence-parser.js";
 import {
@@ -155,18 +155,20 @@ class ChainVerificationAccumulator {
       this.fatal = true;
       return;
     }
-    addAll(
-      this.collector,
-      this.rules.evaluate(
-        Object.freeze({
-          phase: "link",
-          link: evidence.value,
-          recordId: evidence.value.recordId,
-          position: evidence.value.position,
-        }),
-        this.options.limits,
-      ),
-    );
+    if (this.rules.hasRules()) {
+      addAll(
+        this.collector,
+        this.rules.evaluate(
+          Object.freeze({
+            phase: "link",
+            link: evidence.value,
+            recordId: evidence.value.recordId,
+            position: evidence.value.position,
+          }),
+          this.options.limits,
+        ),
+      );
+    }
     if (this.first === undefined) {
       this.first = evidence.value;
       this.expectedPosition = initialPosition(this.config, evidence.value);
@@ -272,16 +274,18 @@ class ChainVerificationAccumulator {
       this.recordsSeen,
       this.collector,
     );
-    addAll(
-      this.collector,
-      this.rules.evaluate(
-        Object.freeze({
-          phase: "chain",
-          chain: Object.freeze({ count: this.recordsSeen, boundaries, mode: this.config.mode }),
-        }),
-        this.options.limits,
-      ),
-    );
+    if (this.rules.hasRules()) {
+      addAll(
+        this.collector,
+        this.rules.evaluate(
+          Object.freeze({
+            phase: "chain",
+            chain: Object.freeze({ count: this.recordsSeen, boundaries, mode: this.config.mode }),
+          }),
+          this.options.limits,
+        ),
+      );
+    }
     const diagnostics = this.collector.finish();
     const status =
       diagnostics.some(({ severity }) => severity === "error") || this.fatal
@@ -546,9 +550,9 @@ function recomposeLink(evidence: LinkEvidence, limits: Limits): OperationResult<
       ? validateDigest(evidence.previous.value, evidence.algorithm)
       : undefined;
   if (previous !== undefined && !previous.ok) return previous;
-  return hashFrame(
+  return hashTrustedFrame(
     evidence.algorithm,
-    buildLinkFrame(
+    buildTrustedLinkFrame(
       {
         algorithm: evidence.algorithm,
         contextId: evidence.contextId,
@@ -560,7 +564,6 @@ function recomposeLink(evidence: LinkEvidence, limits: Limits): OperationResult<
       },
       limits,
     ),
-    limits,
   );
 }
 

@@ -11,7 +11,18 @@ import type { NormalizationProfile, NormalizationStats } from "./profile.js";
 import { jcsProfile } from "./jcs-profile.js";
 import { rawBytesProfile } from "./raw-bytes-profile.js";
 
-type RegisteredProfile = NormalizationProfile;
+interface RegisteredProfile {
+  readonly id: ProfileId;
+  readonly version: ProfileVersion;
+  readonly inputKind: NormalizationProfile["inputKind"];
+  validate(input: unknown, limits: Limits): OperationResult<unknown>;
+  normalize(input: unknown, sink: ByteSink, limits: Limits): OperationResult<NormalizationStats>;
+  normalizeValidated(
+    input: unknown,
+    sink: ByteSink,
+    limits: Limits,
+  ): OperationResult<NormalizationStats>;
+}
 
 export class ProfileRegistry {
   private readonly profiles = new Map<string, RegisteredProfile>();
@@ -40,6 +51,14 @@ export class ProfileRegistry {
     return success(profile);
   }
 
+  resolveValidated(
+    reference: Readonly<{ readonly id: string; readonly version: string }>,
+  ): OperationResult<RegisteredProfile> {
+    const profile = this.profiles.get(`${reference.id}\u0000${reference.version}`);
+    if (profile === undefined) return failure([createDiagnostic("PROFILE_UNKNOWN", "input")]);
+    return success(profile);
+  }
+
   private registerBuiltin<I>(profile: NormalizationProfile<I>): void {
     this.profiles.set(profileKey(profile.id, profile.version), eraseProfile(profile));
   }
@@ -59,6 +78,15 @@ function eraseProfile<I>(profile: NormalizationProfile<I>): RegisteredProfile {
       const validated = profile.validate(input, limits);
       if (!validated.ok) return validated;
       return profile.normalize(validated.value, sink, limits);
+    },
+    normalizeValidated: (
+      input: unknown,
+      sink: ByteSink,
+      limits: Limits,
+    ): OperationResult<NormalizationStats> => {
+      // The record service invokes this only after the profile validator succeeds.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- erased generic at the trusted registry boundary
+      return profile.normalize(input as I, sink, limits);
     },
   });
 }

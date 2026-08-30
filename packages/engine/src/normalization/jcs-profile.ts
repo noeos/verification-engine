@@ -12,6 +12,7 @@ import type { NormalizationProfile, NormalizationStats } from "./profile.js";
 
 const JCS_PROFILE_ID = ProfileId.fromValidated("dev.noeos.jcs");
 const JCS_PROFILE_VERSION = ProfileVersion.fromValidated("1.0.0");
+const UTF8_ENCODER = new TextEncoder();
 
 export const jcsProfile: NormalizationProfile<JsonValue> = Object.freeze({
   id: JCS_PROFILE_ID,
@@ -124,7 +125,7 @@ function numberToJcs(value: number): string {
 }
 
 function writeText(value: string, sink: ByteSink): void {
-  sink.write(new TextEncoder().encode(value));
+  sink.write(UTF8_ENCODER.encode(value));
 }
 
 function compareUtf16(left: string, right: string): number {

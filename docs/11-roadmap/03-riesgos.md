@@ -15,7 +15,7 @@ Escala: probabilidad (P) e impacto (I) 1–5; exposición P×I. Responsable por 
 | R-07 | Dependencia comprometida | 2 | 5 | zero runtime, lock, scans | advisory/owner anomaly | supply chain |
 | R-08 | Publicación npm comprometida | 2 | 5 | OIDC, stage, 2FA, provenance | artifact no esperado | release/security |
 | R-09 | Cuenta mantenedor comprometida | 3 | 5 | FIDO2, least privilege, reviews | login/commit anómalo | seguridad |
-| R-10 | Un solo mantenedor | 4 | 4 | custodia, auditor externo, docs, wait | indisponibilidad | dirección |
+| R-10 | Un solo mantenedor | 4 | 4 | custodia, auditor externo, docs, branch protection | indisponibilidad | dirección |
 | R-11 | Objetivos rendimiento no alcanzados | 3 | 3 | benchmark temprano, profiling, opción ADR WASM | gate < objetivo | rendimiento |
 | R-12 | Rust/WASM necesario tarde | 2 | 4 | puertos y vectors portables | TS no cumple tras optimizar | arquitectura |
 | R-13 | Cambio Node altera JCS | 2 | 5 | vectors por runtime, profile version | output diferente | protocolo |

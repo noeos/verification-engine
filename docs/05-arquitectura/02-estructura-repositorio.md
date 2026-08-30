@@ -108,7 +108,7 @@ verification-engine/
 - `/docs/09-legalidad`, `LICENSE`, `NOTICE`: legal/licencias;
 - `/security`: seguridad.
 
-Si solo existe una persona mantenedora, la revisión independiente se sustituye temporalmente por branch protection, espera de 24 horas para cambios críticos y auditoría externa antes de release estable; nunca por autopublicación inmediata.
+Si solo existe una persona mantenedora, la revisión independiente se sustituye temporalmente por branch protection, firmas verificadas, CI bloqueante, custodia de recuperación y auditoría externa antes de release estable; nunca por autopublicación inmediata.
 
 ## Prohibiciones organizativas
 

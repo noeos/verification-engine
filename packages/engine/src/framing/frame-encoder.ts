@@ -18,6 +18,8 @@ const KIND_CODES: Readonly<Record<FrameKind, number>> = Object.freeze({
   link: 0x03,
   evidence: 0x04,
 });
+const MAGIC_BYTES = new TextEncoder().encode(MAGIC);
+const UTF8_ENCODER = new TextEncoder();
 
 export function encodeFrame(input: unknown, limits: Limits): OperationResult<Uint8Array> {
   const frameInput = validateFrameInput(input);
@@ -50,6 +52,44 @@ export function encodeFrame(input: unknown, limits: Limits): OperationResult<Uin
       sink.write(field.value);
     }
     return { ok: true, value: sink.toBytes(), diagnostics: Object.freeze([]) };
+  } catch {
+    return frameFailure("FRAME_LENGTH_INVALID", limits);
+  }
+}
+
+/** Internal fast path. Callers must have completed positive validation. */
+export function encodeTrustedFrame(input: FrameInput, limits: Limits): OperationResult<Uint8Array> {
+  const kindCode = KIND_CODES[input.kind];
+  const encodedFields: EncodedField[] = [];
+  let total = MAGIC_BYTES.length + 3 + 2;
+  try {
+    for (const field of input.fields) {
+      const encoded = encodeTrustedField(field, limits);
+      total += 2 + 1 + 8 + encoded.value.length;
+      encodedFields.push(encoded);
+    }
+    if (input.fields.length > 0xffff || total > limits.maxPayloadBytes) {
+      return frameFailure("FRAME_LENGTH_INVALID", limits);
+    }
+    const output = new Uint8Array(total);
+    let offset = 0;
+    output.set(MAGIC_BYTES, offset);
+    offset += MAGIC_BYTES.length;
+    output[offset++] = kindCode;
+    output[offset++] = 0;
+    output[offset++] = PROTOCOL_VERSION;
+    output[offset++] = (encodedFields.length >>> 8) & 0xff;
+    output[offset++] = encodedFields.length & 0xff;
+    for (const field of encodedFields) {
+      output[offset++] = (field.tag >>> 8) & 0xff;
+      output[offset++] = field.tag & 0xff;
+      output[offset++] = field.typeCode;
+      writeUint64(output, offset, field.value.length);
+      offset += 8;
+      output.set(field.value, offset);
+      offset += field.value.length;
+    }
+    return { ok: true, value: output, diagnostics: Object.freeze([]) };
   } catch {
     return frameFailure("FRAME_LENGTH_INVALID", limits);
   }
@@ -130,6 +170,18 @@ function encodeField(field: FrameField, limits: Limits): OperationResult<Encoded
   return successField(field.tag, 0x04, new Uint8Array(0));
 }
 
+function encodeTrustedField(field: FrameField, limits: Limits): EncodedField {
+  if (field.type === "bytes") return { tag: field.tag, typeCode: 0x01, value: field.value };
+  if (field.type === "utf8") {
+    const value = UTF8_ENCODER.encode(field.value);
+    if (value.length > limits.maxPayloadBytes) throw new RangeError("frame field too large");
+    return { tag: field.tag, typeCode: 0x02, value };
+  }
+  if (field.type === "uint64")
+    return { tag: field.tag, typeCode: 0x03, value: uint64Bytes(field.value) };
+  return { tag: field.tag, typeCode: 0x04, value: new Uint8Array(0) };
+}
+
 function successField(
   tag: number,
   typeCode: number,
@@ -154,6 +206,14 @@ function uint64Bytes(value: number): Uint8Array {
     remaining >>= 8n;
   }
   return output;
+}
+
+function writeUint64(output: Uint8Array, offset: number, value: number): void {
+  let remaining = BigInt(value);
+  for (let index = offset + 7; index >= offset; index -= 1) {
+    output[index] = Number(remaining & 0xffn);
+    remaining >>= 8n;
+  }
 }
 
 function frameFailure<T = Uint8Array>(

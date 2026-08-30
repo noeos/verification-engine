@@ -8,9 +8,15 @@ Include affected versions or commit, impact, reproducible conditions, and a mini
 
 ## Response targets
 
-- Acknowledgement: within 2 business days.
-- Initial triage: within 5 business days.
-- Critical/high remediation target: as soon as safely possible under the severity and exploitation analysis defined in the normative security plan.
+| Severity | Acknowledgement |   Initial triage | Mitigation target |            Fix target |
+| -------- | --------------: | ---------------: | ----------------: | --------------------: |
+| Critical |         4 hours |         24 hours |          48 hours |                7 days |
+| High     |  1 business day |  2 business days |            7 days |               30 days |
+| Medium   | 2 business days |  5 business days |        risk-based |               90 days |
+| Low      | 5 business days | 10 business days |           backlog | next reasonable minor |
+
+These are maximum response objectives, not a promise to delay mitigation. Legal
+or regulatory obligations take precedence.
 
 Targets are not a guarantee of a specific fix date. Noeos will preserve evidence, coordinate disclosure, publish an advisory when appropriate, and credit reporters who request and can safely receive credit.
 

@@ -22,7 +22,7 @@ export const rawBytesProfile: NormalizationProfile<Uint8Array> = Object.freeze({
       return failureWithCode("INPUT_TYPE_INVALID", "input");
     if (input.length > limits.maxPayloadBytes)
       return failureWithCode("INPUT_LIMIT_EXCEEDED", "input");
-    return success(Uint8Array.from(input));
+    return success(input);
   },
   normalize(input: Uint8Array, sink: ByteSink): OperationResult<NormalizationStats> {
     sink.write(input);

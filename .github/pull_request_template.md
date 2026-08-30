@@ -22,8 +22,6 @@ Describe the single responsibility of this change and link its issue or approved
 
 ## Critical change gate
 
-- [ ] The change does not touch a critical path; or at least 24 hours have elapsed since the final push and the critical-path job confirms it.
-
 ## Release impact
 
 State the SemVer and changelog conclusion, including “none” when the change cannot affect consumers.
