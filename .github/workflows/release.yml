@@ -1,0 +1,129 @@
+name: Stable release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "!v*.*.*-*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: noeos-stable-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+  NPM_CONFIG_IGNORE_SCRIPTS: "true"
+  NPM_CONFIG_OMIT: "optional"
+
+jobs:
+  performance:
+    name: Governed · release performance evidence
+    runs-on: [self-hosted, noeos-performance, linux, x64]
+    timeout-minutes: 90
+    env:
+      NODE_OPTIONS: --expose-gc
+      NOEOS_BENCH_REPORT: benchmarks/reports/phase1011-${{ github.sha }}.json
+    steps:
+      - name: Check out exact signed release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require signed tag from protected main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/security/allowed-signers"
+          git verify-tag "$GITHUB_REF_NAME"
+          git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"
+      - name: Set up primary Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Verify primary Node and bundled npm
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
+      - name: Install from reviewed lockfile
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
+      - name: Execute absolute and relative budgets
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run perf:check
+      - name: Collect CPU and heap profiles
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run profile:phase1011
+      - name: Upload performance evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-performance-${{ github.sha }}
+          path: benchmarks/reports/
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: Publish and attest stable packages
+    needs: performance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: npm-production
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    steps:
+      - name: Check out exact signed release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require signed tag from protected main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/security/allowed-signers"
+          git verify-tag "$GITHUB_REF_NAME"
+          git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"
+          release_version="${GITHUB_REF_NAME#v}"
+          test "$release_version" = "$(node --input-type=module --eval 'import manifest from "./packages/engine/package.json" with { type: "json" }; process.stdout.write(manifest.version)')"
+          test "$release_version" = "$(node --input-type=module --eval 'import manifest from "./packages/cli/package.json" with { type: "json" }; process.stdout.write(manifest.version)')"
+      - name: Set up primary Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Verify primary Node and bundled npm
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
+      - name: Install from reviewed lockfile
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
+      - name: Run all release gates
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run ci
+      - name: Build immutable package artifacts
+        run: |
+          mkdir --parents artifacts/release
+          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- pack --json --ignore-scripts --pack-destination artifacts/release --workspaces > artifacts/release/pack-manifest.json
+          sha256sum artifacts/release/*.tgz > artifacts/release/SHA256SUMS
+          sha512sum artifacts/release/*.tgz > artifacts/release/SHA512SUMS
+      - name: Attest release artifacts
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: artifacts/release/*.tgz
+      - name: Publish reviewed tarballs through OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          for package in artifacts/release/*.tgz; do
+            node scripts/run-verified-package-manager.mjs --profile node-24-primary -- publish "$package" --provenance --access public --tag latest
+          done
+      - name: Verify published registry metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_version="${GITHUB_REF_NAME#v}"
+          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "@noeos/verification-engine@$release_version" version dist-tags --json
+          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "@noeos/verification-engine-cli@$release_version" version dist-tags --json
+      - name: Create GitHub release with immutable evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/release/*.tgz artifacts/release/SHA256SUMS artifacts/release/SHA512SUMS --title "Noeos Verification Engine $GITHUB_REF_NAME" --generate-notes

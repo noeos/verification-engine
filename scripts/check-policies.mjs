@@ -39,8 +39,23 @@ const schemaProvenance = await readJson(
 );
 
 requireValue(rootManifest.private, true, "root package must be private");
-requireValue(engineManifest.private, true, "engine package must be private");
-requireValue(cliManifest.private, true, "CLI package must be private");
+requireValue(engineManifest.private, false, "engine package must be explicitly publishable");
+requireValue(cliManifest.private, false, "CLI package must be explicitly publishable");
+for (const [label, manifest] of [
+  ["root", rootManifest],
+  ["engine", engineManifest],
+  ["CLI", cliManifest],
+]) {
+  if (!isStableReleaseVersion(manifest.version)) {
+    failures.push(`${label} must use a stable SemVer release version`);
+  }
+}
+if (
+  engineManifest.version !== cliManifest.version ||
+  rootManifest.version !== engineManifest.version
+) {
+  failures.push("root, engine, and CLI must share one release version");
+}
 const toolchainFailures = validateToolchainManifest(runtimeToolchain);
 failures.push(...toolchainFailures);
 const primaryToolchain = runtimeToolchain.profiles[runtimeToolchain.primaryProfile];
@@ -109,13 +124,23 @@ requireValue(
 );
 requireValue(
   githubSettings.repositoryMetadata.description,
-  "Specifications and governed TypeScript workspace for deterministic data-integrity evidence, hash chains, and auditable verification.",
+  "Deterministic offline-first verification engine and CLI for data-integrity evidence, hash chains, and auditable diagnostics.",
   "GitHub description must match the approved public presentation",
 );
 requireValue(
   githubSettings.environments["npm-staging"].canAdminsBypass,
   false,
   "npm staging must prohibit administrator bypass",
+);
+requireValue(
+  githubSettings.environments["npm-production"].canAdminsBypass,
+  false,
+  "npm production must prohibit administrator bypass",
+);
+requireValue(
+  githubSettings.environments["npm-production"].preventSelfReview,
+  true,
+  "npm production must prevent self-review",
 );
 requireValue(
   githubSettings.organization.twoFactorAuthenticationRequired,
@@ -271,6 +296,10 @@ const releaseWorkflowSource = await readFile(
   resolve(projectRoot, ".github/workflows/release-candidate.yml"),
   "utf8",
 );
+const stableReleaseWorkflowSource = await readFile(
+  resolve(projectRoot, ".github/workflows/release.yml"),
+  "utf8",
+);
 if (
   !releaseWorkflowSource.includes(
     "if: github.ref_type == 'tag' && vars.NPM_STAGE_ENABLED == 'true'",
@@ -278,6 +307,18 @@ if (
   releaseWorkflowSource.includes("inputs.stage")
 ) {
   failures.push("npm staging must be gated by an approved release-candidate tag");
+}
+if (
+  !stableReleaseWorkflowSource.includes("environment: npm-production") ||
+  !stableReleaseWorkflowSource.includes("-- publish") ||
+  !stableReleaseWorkflowSource.includes("needs: performance") ||
+  !stableReleaseWorkflowSource.includes("runs-on: [self-hosted, noeos-performance, linux, x64]") ||
+  !stableReleaseWorkflowSource.includes("run perf:check") ||
+  stableReleaseWorkflowSource.includes("NPM_TOKEN")
+) {
+  failures.push(
+    "stable npm publication must require protected OIDC approval and governed performance evidence",
+  );
 }
 for (const tool of admittedCiTools) {
   if (
@@ -333,7 +374,7 @@ const admittedWorkflowActions = new Set(
 const workflowSources = await Promise.all(
   workflowFiles.map((workflow) => readFile(workflow, "utf8")),
 );
-requireValue(workflowActions.reviewedAt, "2026-08-26", "workflow Action review date is unexpected");
+requireValue(workflowActions.reviewedAt, "2026-08-31", "workflow Action review date is unexpected");
 if (admittedWorkflowActions.size !== (workflowActions.actions ?? []).length) {
   failures.push("reviewed workflow Action inventory contains duplicate references");
 }
@@ -414,4 +455,10 @@ function requireValue(actual, expected, message) {
   if (actual !== expected) {
     failures.push(message);
   }
+}
+
+function isStableReleaseVersion(value) {
+  return (
+    typeof value === "string" && /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/u.test(value)
+  );
 }

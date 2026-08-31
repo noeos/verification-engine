@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const allowedCommands = new Set(["ci", "pack", "run", "stage"]);
+const allowedCommands = new Set(["ci", "pack", "publish", "run", "stage", "view"]);
 
 export function parseVerifiedPackageManagerInvocation(arguments_) {
   if (

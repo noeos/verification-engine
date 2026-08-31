@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/require-await, @typescript-eslint/no-unused-vars */
 
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { Readable, Writable } from "node:stream";
 import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -80,6 +81,47 @@ async function invoke(
   });
   return { code, stdout: stdout.text(), stderr: stderr.text() };
 }
+
+async function invokeProcess(
+  args: readonly string[],
+  input = "",
+): Promise<{ code: number | null; stdout: string; stderr: string }> {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(process.execPath, ["packages/cli/dist/esm/main.js", ...args], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
+    child.on("error", reject);
+    child.on("close", (code) => {
+      resolvePromise({
+        code,
+        stdout: Buffer.concat(stdout).toString("utf8"),
+        stderr: Buffer.concat(stderr).toString("utf8"),
+      });
+    });
+    child.stdin.end(input);
+  });
+}
+
+void test("phase 9 CLI process entrypoint drains piped input and output before exit", async () => {
+  const result = await invokeProcess(
+    ["record", "hash", "--input", "-", "--output", "ndjson"],
+    `${JSON.stringify({
+      contextId: "process-context",
+      recordId: "process-record",
+      profile: { id: "dev.noeos.jcs", version: "1.0.0" },
+      algorithm: "sha-256",
+      payload: { value: 1 },
+    })}\n`,
+  );
+  assert.equal(result.code, 0);
+  assert.equal(result.stderr, "");
+  assert.equal((JSON.parse(result.stdout) as { readonly ok: unknown }).ok, true);
+});
 
 void test("phase 9 CLI preserves API parity, strict input, exit codes, and safe output", async () => {
   const recordInput = JSON.stringify({

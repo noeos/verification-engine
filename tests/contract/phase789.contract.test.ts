@@ -182,6 +182,32 @@ void test("phase 8 public engine validates configuration, adapts profiles, obser
   assert.equal(observedEngine.digestEvidence(record.value).ok, true);
   assert.deepEqual(events, ["operation.started", "operation.completed"]);
 
+  const diagnosticEvents: string[] = [];
+  const diagnosticEngine = createEngine({
+    onEvent: (event: EngineEvent) => {
+      diagnosticEvents.push(event.name);
+      if (event.name === "diagnostic.emitted") throw new Error("observer isolation");
+    },
+  });
+  const invalidRecord = diagnosticEngine.hashRecord({
+    contextId: "ctx",
+    recordId: "invalid-public-record",
+    profile: { id: "dev.noeos.jcs", version: "1.0.0" },
+    algorithm: "sha-256",
+    payload: { invalid: Number.NaN },
+  });
+  assert.equal(invalidRecord.ok, false);
+  assert.deepEqual(diagnosticEvents, ["operation.started", "diagnostic.emitted"]);
+
+  assert.throws(
+    () =>
+      observedEngine.createChain({
+        ...chainConfig,
+        contextId: "invalid context",
+      }),
+    { code: "INPUT_TYPE_INVALID" },
+  );
+
   const customProfile = {
     id: "com.example.profile",
     version: "1.0.0",

@@ -1,14 +1,14 @@
 # Noeos Verification Engine · especificación maestra
 
-Estado: **normativo, aprobado para implementación**
-Edición documental: **1.0.0-plan**
+Estado: **normativo, operativo para release y mantenimiento**
+Edición documental: **1.0.0**
 Fecha de referencia: **2026-08-26**
 
-Este directorio es la fuente de verdad para construir y operar Noeos Verification Engine. No se autoriza implementar una capacidad cuyo comportamiento, riesgo, contrato y criterio de prueba no estén definidos aquí. Una fase ordena trabajo; nunca reduce el producto a un MVP.
+Este directorio es la fuente de verdad para operar, mantener y evolucionar Noeos Verification Engine. No se autoriza cambiar una capacidad cuyo comportamiento, riesgo, contrato y criterio de prueba no estén definidos aquí. Una fase ordena evidencia y mantenimiento; nunca reduce el producto a un MVP.
 
 ## Resultado exigido
 
-El producto terminado será una biblioteca pública TypeScript para Node.js y una CLI independiente, publicadas en npm, capaces de normalizar, encadenar y verificar registros genéricos, detectar anomalías, producir evidencias reproducibles y procesar secuencias extensas sin almacenamiento propio. Será seguro por defecto, determinista, observable por el consumidor, compatible mediante contratos versionados y operable durante todo su periodo de soporte.
+Noeos Verification Engine es una biblioteca pública TypeScript para Node.js y una CLI independiente, publicadas en npm, capaces de normalizar, encadenar y verificar registros genéricos, detectar anomalías, producir evidencias reproducibles y procesar secuencias extensas sin almacenamiento propio. Es seguro por defecto, determinista, observable por el consumidor, compatible mediante contratos versionados y operable durante todo su periodo de soporte.
 
 El motor no conocerá facturas, impuestos, clientes, usuarios, organismos, certificados ni regulación. VERI*FACTU será un consumidor externo y conservará toda la semántica regulatoria.
 
@@ -33,6 +33,8 @@ El motor no conocerá facturas, impuestos, clientes, usuarios, organismos, certi
 | Publicación, operación y soporte | [`10-entrega-operacion/`](10-entrega-operacion/) |
 | Secuencia de construcción y cierre | [`11-roadmap/`](11-roadmap/) |
 | Fuentes y matrices | [`anexos/`](anexos/) |
+
+Los avisos públicos de distribución y privacidad están en [`../LEGAL.md`](../LEGAL.md) y [`../PRIVACY.md`](../PRIVACY.md); la delimitación jurídica pública del componente está en [`09-legalidad/05-informacion-publica.md`](09-legalidad/05-informacion-publica.md).
 
 ## Reglas de lectura
 

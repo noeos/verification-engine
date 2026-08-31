@@ -8,7 +8,12 @@ import type {
   RecordInput,
 } from "../domain/chain.js";
 import type { PreviousLink } from "../domain/evidence.js";
-import type { Diagnostic, DiagnosticPhase, DiagnosticSeverity } from "../domain/diagnostic.js";
+import type {
+  Diagnostic,
+  DiagnosticDetail,
+  DiagnosticPhase,
+  DiagnosticSeverity,
+} from "../domain/diagnostic.js";
 import type {
   BoundaryState,
   DiagnosticSummary,
@@ -21,6 +26,7 @@ import type {
   VerificationMode,
   VerificationStats,
   VerificationStatus,
+  EvidenceProfile,
 } from "../domain/evidence.js";
 import {
   CHAIN_SUMMARY_EVIDENCE_SCHEMA,
@@ -32,7 +38,12 @@ import { DIAGNOSTIC_SCHEMA } from "../domain/diagnostic.js";
 import type { Digest } from "../domain/digest.js";
 import type { Limits } from "../domain/limits.js";
 import type { OperationResult } from "../domain/operation-result.js";
-import type { DuplicatePolicy } from "../domain/duplicate-policy.js";
+import type {
+  DuplicateKind,
+  DuplicateObservation,
+  DuplicatePolicy,
+  ExternalDuplicateIndex,
+} from "../domain/duplicate-policy.js";
 import type {
   Rule,
   RuleContext,
@@ -49,13 +60,18 @@ export type {
   ChainSnapshot,
   BoundaryState,
   Diagnostic,
+  DiagnosticDetail,
   DiagnosticDetails,
   DiagnosticPhase,
   DiagnosticSeverity,
   DuplicatePolicy,
+  ExternalDuplicateIndex,
   Digest,
   DiagnosticSummary,
   Evidence,
+  EvidenceProfile,
+  DuplicateKind,
+  DuplicateObservation,
   LinkEvidence,
   Limits,
   OperationResult,
@@ -184,7 +200,6 @@ export interface StreamOptions {
   readonly onEvidence?: (evidence: LinkEvidence) => void | Promise<void>;
 }
 
-/** @public */
 /** @public */
 export interface ChainConfig {
   readonly contextId: string;

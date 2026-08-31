@@ -63,6 +63,13 @@
       "preventSelfReview": false,
       "requiredReviewers": ["ddavid07"],
       "selectedTagsOnly": true
+    },
+    "npm-production": {
+      "canAdminsBypass": false,
+      "deploymentTagPattern": "v*.*.*",
+      "preventSelfReview": true,
+      "requiredReviewers": ["ddavid07"],
+      "selectedTagsOnly": true
     }
   },
   "features": {
@@ -141,9 +148,9 @@
   "repositoryMetadata": {
     "allowForking": true,
     "archived": false,
-    "description": "Specifications and governed TypeScript workspace for deterministic data-integrity evidence, hash chains, and auditable verification.",
+    "description": "Deterministic offline-first verification engine and CLI for data-integrity evidence, hash chains, and auditable diagnostics.",
     "disabled": false,
-    "homepage": null
+    "homepage": "https://github.com/noeos/verification-engine#readme"
   },
   "tagRules": {
     "v*": {
@@ -163,7 +170,9 @@
     "offline-first",
     "supply-chain-security",
     "typescript",
-    "verification"
+    "verification",
+    "verification-engine",
+    "cli"
   ],
   "visibility": "public",
   "webCommitSignoffRequired": true

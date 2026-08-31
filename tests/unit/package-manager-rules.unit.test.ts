@@ -26,6 +26,19 @@ void test("verified package-manager invocations require an exact profile and sep
 });
 
 void test("verified package-manager invocations reject commands outside the reviewed allowlist", () => {
+  assert.deepEqual(
+    parseVerifiedPackageManagerInvocation([
+      "--profile",
+      "node-24-primary",
+      "--",
+      "publish",
+      "package.tgz",
+    ]),
+    {
+      profileName: "node-24-primary",
+      packageManagerArguments: ["publish", "package.tgz"],
+    },
+  );
   assert.throws(
     () => parseVerifiedPackageManagerInvocation(["--profile", "node-24-primary", "--", "install"]),
     /Unsupported package-manager command/u,

@@ -274,7 +274,9 @@ async function runCliLatency() {
   const firstRecordValues = [];
   const entry = resolve(projectRoot, "packages/cli/dist/esm/main.js");
   for (let index = 0; index < count; index += 1) {
-    versionValues.push(await spawnCli(entry, ["version", "--output", "ndjson"]));
+    versionValues.push(
+      await spawnCli(entry, ["version", "--output", "ndjson"], "", false, `P-07/${index}`),
+    );
     firstRecordValues.push(
       await spawnCli(
         entry,
@@ -287,6 +289,7 @@ async function runCliLatency() {
           algorithm: "sha-256",
         })}\n`,
         true,
+        `P-08/${index}`,
       ),
     );
   }
@@ -294,7 +297,7 @@ async function runCliLatency() {
   results.push({ id: "P-08", metric: "p95", p95: percentile(firstRecordValues, 0.95), count });
 }
 
-function spawnCli(entry, arguments_, input = "", firstOutput = false) {
+function spawnCli(entry, arguments_, input = "", firstOutput = false, label = "CLI") {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(process.execPath, [entry, ...arguments_], {
       cwd: projectRoot,
@@ -309,15 +312,22 @@ function spawnCli(entry, arguments_, input = "", firstOutput = false) {
       if (error !== undefined) reject(error);
       else resolvePromise(value);
     };
-    child.stderr.resume();
+    const stderr = [];
+    child.stderr.on("data", (chunk) => stderr.push(String(chunk)));
     const onOutput = () => {
       if (firstOutput && firstLatency === undefined) firstLatency = performance.now() - started;
     };
     child.stdout.once("data", onOutput);
     child.on("error", (error) => finish(error));
     child.on("close", (code) => {
-      if (code !== 0) finish(new Error(`CLI benchmark exited with ${String(code)}`));
-      else if (firstOutput) {
+      if (code !== 0) {
+        const detail = stderr.join("").trim();
+        finish(
+          new Error(
+            `${label} benchmark exited with ${String(code)}${detail.length === 0 ? "" : `: ${detail}`}`,
+          ),
+        );
+      } else if (firstOutput) {
         if (firstLatency === undefined) finish(new Error("CLI produced no output"));
         else finish(undefined, firstLatency);
       } else finish(undefined, performance.now() - started);

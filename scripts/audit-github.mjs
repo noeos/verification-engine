@@ -32,10 +32,6 @@ expect(
 );
 const mainRuleset = readRuleset(rulesetList, "Protect main", "branch");
 const tagRuleset = readRuleset(rulesetList, "Protect release tags", "tag");
-const environment = apiJson(`repos/${repository}/environments/npm-staging`);
-const deploymentPolicies = apiJson(
-  `repos/${repository}/environments/npm-staging/deployment-branch-policies`,
-);
 const privateReporting = apiJson(`repos/${repository}/private-vulnerability-reporting`);
 const organization = apiJson(`orgs/${expected.organization.login}`);
 
@@ -100,7 +96,13 @@ expect(
 
 auditMainRuleset(mainRuleset, expected.branchRules.main);
 auditTagRuleset(tagRuleset, expected.tagRules["v*"]);
-auditEnvironment(environment, deploymentPolicies, expected.environments["npm-staging"]);
+for (const [name, policy] of Object.entries(expected.environments)) {
+  const environment = apiJson(`repos/${repository}/environments/${name}`);
+  const deploymentPolicies = apiJson(
+    `repos/${repository}/environments/${name}/deployment-branch-policies`,
+  );
+  auditEnvironment(name, environment, deploymentPolicies, policy);
+}
 
 expect(
   "secret scanning",
@@ -165,29 +167,33 @@ function apiSucceeds(endpoint) {
   return true;
 }
 
-function auditEnvironment(actual, policies, policy) {
-  expect("environment name", actual.name, "npm-staging");
-  expect("environment admin bypass", actual.can_admins_bypass, policy.canAdminsBypass);
+function auditEnvironment(name, actual, policies, policy) {
+  expect(`${name} environment name`, actual.name, name);
+  expect(`${name} environment admin bypass`, actual.can_admins_bypass, policy.canAdminsBypass);
   const reviewers = actual.protection_rules
     .filter(({ type }) => type === "required_reviewers")
     .flatMap(({ reviewers: entries }) => entries.map(({ reviewer }) => reviewer.login))
     .sort();
-  expect("environment reviewers", reviewers, [...policy.requiredReviewers].sort());
+  expect(`${name} environment reviewers`, reviewers, [...policy.requiredReviewers].sort());
   const reviewerRule = actual.protection_rules.find(({ type }) => type === "required_reviewers");
-  expect("environment self-review", reviewerRule.prevent_self_review, policy.preventSelfReview);
   expect(
-    "environment protected branches",
+    `${name} environment self-review`,
+    reviewerRule.prevent_self_review,
+    policy.preventSelfReview,
+  );
+  expect(
+    `${name} environment protected branches`,
     actual.deployment_branch_policy.protected_branches,
     false,
   );
   expect(
-    "environment custom policies",
+    `${name} environment custom policies`,
     actual.deployment_branch_policy.custom_branch_policies,
     policy.selectedTagsOnly,
   );
-  expect("environment deployment policy count", policies.total_count, 1);
+  expect(`${name} environment deployment policy count`, policies.total_count, 1);
   expect(
-    "environment deployment tag",
+    `${name} environment deployment tag`,
     policies.branch_policies.map(({ name, type }) => ({ name, type })),
     [{ name: policy.deploymentTagPattern, type: "tag" }],
   );
@@ -349,16 +355,18 @@ function auditPrivateSurface(repositoryName, policy) {
     apiJson(`repos/${repositoryName}/dependabot/secrets`).total_count,
     policy.privateSurface.dependabotSecrets,
   );
-  expect(
-    "environment secrets",
-    apiJson(`repos/${repositoryName}/environments/npm-staging/secrets`).total_count,
-    policy.privateSurface.environmentSecrets,
-  );
-  expect(
-    "environment variables",
-    apiJson(`repos/${repositoryName}/environments/npm-staging/variables`).total_count,
-    policy.privateSurface.environmentVariables,
-  );
+  for (const environmentName of Object.keys(policy.environments).sort()) {
+    expect(
+      `${environmentName} environment secrets`,
+      apiJson(`repos/${repositoryName}/environments/${environmentName}/secrets`).total_count,
+      policy.privateSurface.environmentSecrets,
+    );
+    expect(
+      `${environmentName} environment variables`,
+      apiJson(`repos/${repositoryName}/environments/${environmentName}/variables`).total_count,
+      policy.privateSurface.environmentVariables,
+    );
+  }
   expect(
     "open secret scanning alerts",
     apiJson(`repos/${repositoryName}/secret-scanning/alerts?state=open&per_page=100`).length,
