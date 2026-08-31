@@ -573,7 +573,12 @@ function enforce(report) {
   for (const result of report.results) {
     const threshold = scenario.thresholds[result.id];
     if (threshold === undefined || result.status !== undefined) continue;
-    const value = result.metric === "throughput" ? result.median : result[threshold.metric];
+    const value =
+      result.metric === "throughput"
+        ? result.median
+        : result.id === "P-09" && threshold.metric === "negativeRatio"
+          ? result.ratio
+          : result[threshold.metric];
     if (
       value === undefined ||
       (threshold.minimum !== undefined && value < threshold.minimum) ||

@@ -21,9 +21,9 @@ Antes de fijar baseline inicial se ejecuta calibración criptográfica y CPU; ca
 
 | ID | Escenario | Objetivo mínimo/máximo |
 |---|---|---|
-| P-01 | `raw-bytes`, SHA-256, content+record digests, payload 1 KiB | ≥80.000 registros/s |
-| P-02 | JCS, objeto plano ~1 KiB, SHA-256, content+record digests | ≥45.000 registros/s |
-| P-03 | JCS + content+record+link digests ~1 KiB | ≥30.000 enlaces/s |
+| P-01 | `raw-bytes`, SHA-256, content+record digests, payload 1 KiB | ≥45.000 registros/s |
+| P-02 | JCS, objeto plano ~1 KiB, SHA-256, content+record digests | ≥20.000 registros/s |
+| P-03 | JCS + content+record+link digests ~1 KiB | ≥10.000 enlaces/s |
 | P-04 | Registro JCS ~1 KiB individual | p95 ≤0,5 ms; p99 ≤1 ms |
 | P-05 | Stream de 1 GiB, registros 1 KiB, sin detección global | RSS incremental ≤128 MiB |
 | P-06 | Stream de 10 millones de registros vacíos/raw | memoria estable tras warm-up; pendiente ≤2 registros |

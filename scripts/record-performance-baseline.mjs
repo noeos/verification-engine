@@ -33,7 +33,12 @@ for (const thresholdResult of Object.entries(scenario.thresholds)) {
   const [id, threshold] = thresholdResult;
   const result = report.results.find((candidate) => candidate.id === id);
   if (result === undefined || result.status !== undefined) throw new Error(`Missing ${id} result`);
-  const value = result.metric === "throughput" ? result.median : result[threshold.metric];
+  const value =
+    result.metric === "throughput"
+      ? result.median
+      : result.id === "P-09" && threshold.metric === "negativeRatio"
+        ? result.ratio
+        : result[threshold.metric];
   if (
     value === undefined ||
     (threshold.minimum !== undefined && value < threshold.minimum) ||
