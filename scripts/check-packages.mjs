@@ -98,8 +98,8 @@ for (const workspace of workspaces) {
     ? "packages/cli/package.json"
     : "packages/engine/package.json";
   const manifest = await readJson(resolve(projectRoot, manifestPath));
-  if (manifest.private !== true) {
-    throw new Error(`${workspace.name} unexpectedly became publishable`);
+  if (manifest.private !== false) {
+    throw new Error(`${workspace.name} must be explicitly publishable for a stable release`);
   }
   if (workspace.name.endsWith("-cli") && manifest.bin?.["noeos-ve"] !== "./dist/esm/main.js") {
     throw new Error(`${workspace.name} must expose the governed noeos-ve binary`);

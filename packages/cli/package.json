@@ -1,7 +1,7 @@
 {
   "name": "@noeos/verification-engine-cli",
-  "version": "0.0.0-development",
-  "private": true,
+  "version": "1.0.0",
+  "private": false,
   "description": "Command-line interface for the Noeos verification engine.",
   "license": "Apache-2.0",
   "author": "Noeos contributors",
@@ -29,7 +29,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@noeos/verification-engine": "0.0.0-development"
+    "@noeos/verification-engine": "1.0.0"
   },
   "repository": {
     "type": "git",

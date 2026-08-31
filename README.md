@@ -8,9 +8,16 @@ Noeos Verification Engine is the governed TypeScript workspace for the determini
 
 The protocol is designed for offline-first verification of data-integrity evidence, deterministic normalization, framed hashing, linked evidence chains, and stable machine-readable diagnostics. The normative contract lives in [`docs/`](./docs/README.md); implementation cannot silently override it.
 
-## Availability
+## Stable release
 
-No package has been published to npm and the workspaces remain private development artifacts. The repository now contains the reviewed engine API, CLI command boundary, versioned contract metadata, JSON Schemas, and independently reproducible protocol vectors; production use remains blocked until the remaining security, performance, legal, audit, and publication gates are satisfied.
+Version `1.0.0` is the designated first stable release line. Integrate it only after the signed release tag and its matching npm package are available; do not rely on an untagged checkout for production evidence.
+
+```sh
+npm install @noeos/verification-engine@1.0.0
+npm install --save-dev @noeos/verification-engine-cli@1.0.0
+```
+
+The release evidence for each published version includes the API report, contracts, vector manifest, SBOM, package hashes, provenance, reproducibility result, security checks, and release notes.
 
 ## Repository guarantees
 
@@ -62,6 +69,16 @@ That command is read-only and requires an authenticated GitHub CLI session with 
 ## Security and contributions
 
 Read [`SECURITY.md`](./SECURITY.md) before reporting a vulnerability and [`CONTRIBUTING.md`](./CONTRIBUTING.md) before proposing a change. Public issues must never contain credentials, customer records, tax data, personal data, or embargoed vulnerability details.
+
+## Información en español
+
+Noeos Verification Engine es un motor determinista y offline-first para verificar evidencias de integridad, normalización, hashes encadenados y diagnósticos estructurados. No interpreta normativa fiscal, no firma documentos, no certifica identidades o contenidos y no sustituye asesoramiento legal ni los componentes operativos del producto consumidor.
+
+La documentación normativa, los límites, la seguridad, la operación, la continuidad y el expediente de release se encuentran en [`docs/`](./docs/README.md). El engine se publica como componente técnico autónomo: su instalación no convierte al producto consumidor en un sistema fiscal, de firma, identidad o asesoramiento jurídico.
+
+## Legal and privacy
+
+The public legal notice is in [`LEGAL.md`](./LEGAL.md); the privacy statement is in [`PRIVACY.md`](./PRIVACY.md). The engine does not provide fiscal, legal, identity, signature, certificate, storage, hosting, or remote-processing services.
 
 ## License
 

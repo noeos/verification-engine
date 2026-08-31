@@ -861,7 +861,7 @@ async function cliVersion(): Promise<string> {
   /* node:coverage disable */
   return isObject(manifest) && typeof manifest["version"] === "string"
     ? manifest["version"]
-    : "0.0.0-development";
+    : "0.0.0-invalid";
   /* node:coverage enable */
 }
 

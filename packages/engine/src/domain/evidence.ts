@@ -11,6 +11,7 @@ export const LINK_EVIDENCE_SCHEMA = "urn:noeos:verification-engine:link-evidence
 export const CHAIN_SUMMARY_EVIDENCE_SCHEMA =
   "urn:noeos:verification-engine:chain-summary:1" as const;
 
+/** @public */
 export interface EvidenceProfile {
   readonly id: string;
   readonly version: string;

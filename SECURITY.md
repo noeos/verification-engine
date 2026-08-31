@@ -22,7 +22,7 @@ Targets are not a guarantee of a specific fix date. Noeos will preserve evidence
 
 ## Supported versions
 
-This repository has not published a supported public version. Starting with `1.0.0`, each major version follows the five-year support policy in the normative documentation.
+`1.x` is supported through 2031-08-31. Each supported major follows the five-year support policy in the normative documentation; unsupported versions may be deprecated with an actionable migration notice.
 
 ## Scope and safe harbor
 

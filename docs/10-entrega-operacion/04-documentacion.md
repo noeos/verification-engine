@@ -60,7 +60,7 @@ No se copian manualmente contratos. Sitio y repo central consumen versiones publ
 
 ## Versionado
 
-Docs de `latest` apuntan a release estable. Cada major soportada conserva docs navegables y banner de versión/EOL. `main` se identifica como desarrollo. Links de advisories usan permalinks.
+Docs de `latest` apuntan a la release estable. Cada major soportada conserva documentación navegable y banner de versión/EOL. La documentación de `main` identifica el commit y la próxima versión mantenida; las releases conservan enlaces permanentes. Links de advisories usan permalinks.
 
 ## Estilo y seguridad
 

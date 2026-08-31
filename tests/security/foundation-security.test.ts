@@ -12,11 +12,24 @@ void test("engine has no runtime dependencies and CLI only references the engine
   const cli = await readFile(resolve(root, "packages/cli/package.json"), "utf8");
 
   assert.doesNotMatch(engine, /"dependencies"\s*:/u);
-  assert.match(
-    cli,
-    /"dependencies"\s*:\s*\{\s*"@noeos\/verification-engine"\s*:\s*"0\.0\.0-development"\s*\}/u,
-  );
+  const engineManifest: unknown = JSON.parse(engine);
+  const cliManifest: unknown = JSON.parse(cli);
+  if (!isRecord(engineManifest) || !isRecord(cliManifest)) {
+    throw new Error("package manifests must be JSON objects");
+  }
+  const engineVersion = engineManifest["version"];
+  if (typeof engineVersion !== "string") throw new Error("engine version must be text");
+  assert.match(engineVersion, /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/u);
+  assert.equal(cliManifest["version"], engineVersion);
+  assert.equal(cliManifest["private"], false);
+  assert.deepEqual(cliManifest["dependencies"], {
+    "@noeos/verification-engine": engineVersion,
+  });
 });
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 void test("foundation source cannot perform I/O, networking, process execution, or logging", async () => {
   const engineSource = await readFile(resolve(root, "packages/engine/src/index.ts"), "utf8");

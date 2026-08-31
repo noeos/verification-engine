@@ -121,8 +121,6 @@ export interface ChainSummaryEvidence {
     readonly firstPosition?: number;
     // (undocumented)
     readonly lastPosition?: number;
-    // Warning: (ae-forgotten-export) The symbol "EvidenceProfile" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readonly profile: EvidenceProfile;
     // (undocumented)
@@ -577,8 +575,9 @@ export const DIAGNOSTIC_SCHEMA: "urn:noeos:verification-engine:diagnostic:1";
 // @public (undocumented)
 export type DiagnosticCode = (typeof DIAGNOSTIC_CODES)[number]["code"];
 
-// Warning: (ae-forgotten-export) The symbol "DiagnosticDetail" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export type DiagnosticDetail = string | number | boolean | null;
+
 // @public (undocumented)
 export type DiagnosticDetails = Readonly<Record<string, DiagnosticDetail>>;
 
@@ -613,6 +612,19 @@ export class Digest {
     toBytes(): Uint8Array;
     // (undocumented)
     toHex(): string;
+}
+
+// @public (undocumented)
+export type DuplicateKind = "record-id" | "content-digest" | "link-digest" | "fork";
+
+// @public (undocumented)
+export interface DuplicateObservation {
+    // (undocumented)
+    readonly key: string;
+    // (undocumented)
+    readonly kind: DuplicateKind;
+    // (undocumented)
+    readonly value?: string;
 }
 
 // @public (undocumented)
@@ -689,6 +701,19 @@ export interface EngineOptions {
 
 // @public (undocumented)
 export type Evidence = RecordEvidence | LinkEvidence | ChainSummaryEvidence;
+
+// @public (undocumented)
+export interface EvidenceProfile {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly version: string;
+}
+
+// @public (undocumented)
+export interface ExternalDuplicateIndex {
+    observe(batch: readonly DuplicateObservation[]): unknown;
+}
 
 // @public (undocumented)
 export interface Limits {
@@ -976,10 +1001,6 @@ export interface VerifyStreamInput extends ChainVerificationConfig {
     // (undocumented)
     readonly signal?: AbortSignal;
 }
-
-// Warnings were encountered during analysis:
-//
-// dist/types/domain/duplicate-policy.d.ts:22:5 - (ae-forgotten-export) The symbol "ExternalDuplicateIndex" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

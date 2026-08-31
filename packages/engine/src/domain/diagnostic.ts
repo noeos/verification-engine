@@ -7,6 +7,7 @@ export type { DiagnosticCode, DiagnosticSeverity } from "../contracts/generated.
 /** @public */
 export type DiagnosticPhase = "input" | "normalization" | "record" | "link" | "chain" | "output";
 
+/** @public */
 export type DiagnosticDetail = string | number | boolean | null;
 /** @public */
 export type DiagnosticDetails = Readonly<Record<string, DiagnosticDetail>>;

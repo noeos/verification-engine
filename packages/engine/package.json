@@ -1,7 +1,7 @@
 {
   "name": "@noeos/verification-engine",
-  "version": "0.0.0-development",
-  "private": true,
+  "version": "1.0.0",
+  "private": false,
   "description": "Deterministic, offline-first verification engine for Noeos protocols.",
   "license": "Apache-2.0",
   "author": "Noeos contributors",
