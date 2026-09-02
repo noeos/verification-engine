@@ -132,7 +132,7 @@
   },
   "privateSurface": {
     "actionsSecrets": 0,
-    "actionsVariables": 0,
+    "actionsVariables": 1,
     "dependabotSecrets": 0,
     "deployKeys": 0,
     "environmentSecrets": 0,

@@ -46,9 +46,9 @@ El simulacro de recuperación produjo `@noeos/verification-engine` con SHA-256 `
 
 ## Gate de rendimiento oficial
 
-El benchmark absoluto requiere un runner `self-hosted`, `noeos-performance`, `linux`, `x64`, con la serie de hardware y governor definidos en [`07-rendimiento/01-presupuestos.md`](../07-rendimiento/01-presupuestos.md). En la fecha de este registro no hay runner con esas etiquetas ni variable `PERFORMANCE_RUNNER_ENABLED` configurada en GitHub.
+El benchmark absoluto requiere un runner `self-hosted`, `noeos-performance`, `linux`, `x64`, con la serie de hardware y governor definidos en [`07-rendimiento/01-presupuestos.md`](../07-rendimiento/01-presupuestos.md). La variable `PERFORMANCE_RUNNER_ENABLED` está configurada en `true`, pero el único runner registrado (`noeos-performance-wsl`) está offline y no constituye evidencia Linux nativa.
 
-El workflow de release exige ahora ese job y sus perfiles antes de publicar. Para completar esta única dependencia externa debe registrarse un runner dedicado que cumpla el entorno de referencia, habilitar la variable y ejecutar `Performance evidence`; el resultado debe pasar P-01 a P-10 y conservarse como artifact. No se rebaja el umbral, no se sustituye por el WSL local y no se publica sin esa evidencia.
+El workflow de release exige ahora ese job y sus perfiles antes de publicar. Para completar esta única dependencia externa debe registrarse el portátil como runner dedicado que cumpla el entorno de referencia, mantener la variable habilitada y ejecutar `Performance evidence`; el resultado debe pasar P-01 a P-10 y conservarse como artifact. No se rebaja el umbral, no se sustituye por WSL y no se publica sin esa evidencia.
 
 ## Registro npm y provenance
 
