@@ -19,7 +19,7 @@
     "api:check": "npm run build && api-extractor run --config packages/engine/api-extractor.json",
     "build": "node scripts/build.mjs",
     "build:clean": "node scripts/build.mjs --clean-only",
-    "ci": "npm run toolchain:check -- --profile node-24-primary && npm run policy:check && npm run governance:check && npm run docs:check && npm run contracts:check && npm run vectors:check && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run stress:stream && npm run security:boundaries && npm run fuzz:smoke && npm run mutation:check && npm run security:drill && npm run api:check && npm run license:check && npm run security:audit && npm run security:signatures && npm run pack:check && npm run consumer:check && npm run reproducibility:check && npm run sbom",
+    "ci": "npm run toolchain:check -- --profile node-24-primary && npm run policy:check && npm run governance:check && npm run docs:check && npm run contracts:check && npm run vectors:check && npm run build && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run stress:stream && npm run security:boundaries && npm run fuzz:smoke && npm run mutation:check && npm run security:drill && npm run api:check && npm run license:check && npm run security:audit && npm run security:signatures && npm run pack:check && npm run consumer:check && npm run reproducibility:check && npm run sbom",
     "consumer:check": "node scripts/check-consumers.mjs",
     "contracts:check": "node scripts/check-contracts.mjs",
     "contracts:generate": "node scripts/generate-contracts.mjs",
