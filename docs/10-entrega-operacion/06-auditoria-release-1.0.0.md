@@ -1,13 +1,13 @@
 # Auditoría técnica y expediente de release 1.0.0
 
-Estado: **registro operativo de release**
-Fecha de auditoría interna: **2026-08-31**
+Estado: **registro operativo de release completado**
+Fecha de auditoría interna: **2026-09-02**
 
 ## Alcance auditado
 
 La auditoría cubre el workspace `@noeos/verification-engine-workspace` 1.0.0, los paquetes `@noeos/verification-engine` y `@noeos/verification-engine-cli`, sus contratos, vectores, CLI, workflows, políticas de GitHub, cadena de suministro, documentación pública y proceso de publicación.
 
-La etiqueta firmada de release fijará el commit exacto, hashes, SBOM, provenance y evidencias de CI. Ningún resultado de este documento sustituye una revisión profesional o independiente cuando la obligación aplicable la exija.
+La etiqueta firmada `v1.0.0` fija el commit `3624a68c1f66e489cba5d7758b92aadc9734b56d`; la release pública, sus hashes, SBOM, provenance y evidencias de CI están disponibles en GitHub y npm. Ningún resultado de este documento sustituye una revisión profesional o independiente cuando la obligación aplicable la exija.
 
 ## Hallazgo corregido durante auditoría
 
@@ -46,13 +46,28 @@ El simulacro de recuperación produjo `@noeos/verification-engine` con SHA-256 `
 
 ## Gate de rendimiento oficial
 
-El benchmark absoluto requiere un runner `self-hosted`, `noeos-performance`, `linux`, `x64`, con la serie de hardware y governor definidos en [`07-rendimiento/01-presupuestos.md`](../07-rendimiento/01-presupuestos.md). La variable `PERFORMANCE_RUNNER_ENABLED` está configurada en `true`, pero el único runner registrado (`noeos-performance-wsl`) está offline y no constituye evidencia Linux nativa.
+El benchmark oficial se ejecutó en el runner nativo Arch `noeos-performance-arch-lenovo`, con Linux x86_64, Intel Core i7-13620H, 16 CPUs, 16.437.305.344 bytes de RAM, governor `performance`, microcode `0x6134`, Node 24.20.0 y Python 3.13.15. El [workflow oficial de Performance evidence](https://github.com/noeos/verification-engine/actions/runs/33631914713) terminó correctamente sobre `main` en el commit `db2f055c5b63ec7b0b5871cfa68f02bf35e003b5`.
 
-El workflow de release exige ahora ese job y sus perfiles antes de publicar. Para completar esta única dependencia externa debe registrarse el portátil como runner dedicado que cumpla el entorno de referencia, mantener la variable habilitada y ejecutar `Performance evidence`; el resultado debe pasar P-01 a P-10 y conservarse como artifact. No se rebaja el umbral, no se sustituye por WSL y no se publica sin esa evidencia.
+| ID | Resultado oficial | Límite | Estado |
+| --- | ---: | ---: | --- |
+| P-01 | 76.059,925 records/s | ≥45.000 | pasado |
+| P-02 | 35.647,691 records/s | ≥20.000 | pasado |
+| P-03 | 22.927,637 links/s | ≥10.000 | pasado |
+| P-04 | 0,043318 ms p95 | ≤0,5 ms | pasado |
+| P-05 | 23.740.416 bytes RSS | ≤134.217.728 | pasado |
+| P-06 | 1 pending | ≤2 | pasado |
+| P-07 | 99,854 ms p95 | ≤250 ms | pasado |
+| P-08 | 99,893 ms p95 | ≤500 ms | pasado |
+| P-09 | ratio 1,020248 | ≤2 | pasado |
+| P-10 | 0,015341 ms | ≤100 ms | pasado |
+
+El artifact `performance-db2f055c5b63ec7b0b5871cfa68f02bf35e003b5` conserva el reporte, perfiles CPU/heap y perfil de fase 10/11: [descargar evidencia](https://github.com/noeos/verification-engine/actions/runs/33631914713/artifacts/9848830815). El SHA-256 del reporte es `7614ce1ed27cc60ed20dc1726909c15c3fddac03972f3138ace1035676d2fc4d`.
 
 ## Registro npm y provenance
 
-Los dos nombres de paquete no existen aún en el registro público y la sesión local no tiene identidad npm autenticada. Es correcto para una primera publicación, pero el owner de npm debe configurar para cada paquete el trusted publisher de GitHub Actions con el repositorio `noeos/verification-engine`, el workflow `release.yml` y el entorno `npm-production`; además debe exigir 2FA y deshabilitar tokens de publicación tras verificar OIDC. El workflow no contiene ni acepta `NPM_TOKEN`, y publica con `--provenance` únicamente después de sus gates.
+Los dos paquetes están publicados en npm con versión `1.0.0`, `latest` apunta a `1.0.0`, y el tag temporal `bootstrap` conserva `0.0.0`. La publicación estable se realizó mediante el trusted publisher de GitHub Actions, workflow `release.yml`, entorno `npm-production`, OIDC y provenance; no se usó `NPM_TOKEN`. Véanse [`@noeos/verification-engine`](https://www.npmjs.com/package/@noeos/verification-engine) y [`@noeos/verification-engine-cli`](https://www.npmjs.com/package/@noeos/verification-engine-cli).
+
+La verificación independiente [Release verification](https://github.com/noeos/verification-engine/actions/runs/33631984688) comprobó el tag, ancestría, metadata npm, provenance, attestations, tarballs, hashes, manifests, ESM, CommonJS, TypeScript, CLI y firmas npm.
 
 ## Gate de autoridad externa
 

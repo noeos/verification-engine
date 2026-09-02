@@ -1,8 +1,20 @@
 {
   "name": "@noeos/verification-engine",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
-  "description": "Deterministic, offline-first verification engine for Noeos protocols.",
+  "description": "Deterministic offline-first TypeScript engine for hash chains, integrity evidence, and auditable diagnostics.",
+  "keywords": [
+    "verification",
+    "data-integrity",
+    "hash-chain",
+    "cryptography",
+    "audit-trail",
+    "evidence",
+    "offline-first",
+    "json-schema",
+    "typescript",
+    "nodejs"
+  ],
   "license": "Apache-2.0",
   "author": "Noeos contributors",
   "type": "module",
@@ -52,7 +64,7 @@
   "bugs": {
     "url": "https://github.com/noeos/verification-engine/issues"
   },
-  "homepage": "https://github.com/noeos/verification-engine#readme",
+  "homepage": "https://github.com/noeos/verification-engine/tree/main/docs",
   "publishConfig": {
     "access": "public",
     "provenance": true,
