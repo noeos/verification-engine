@@ -1,0 +1,210 @@
+name: Release verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to verify
+        required: true
+        default: v1.0.0
+        type: string
+  workflow_run:
+    workflows:
+      - Stable release
+    types:
+      - completed
+
+permissions:
+  attestations: read
+  contents: read
+
+concurrency:
+  group: noeos-release-verification-${{ inputs.tag || github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify published release
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      GH_TOKEN: ${{ github.token }}
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+      NPM_CONFIG_IGNORE_SCRIPTS: "true"
+      NPM_CONFIG_OMIT: optional
+    steps:
+      - name: Check out the signed release
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify signed tag and protected ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RELEASE_TAG" = "v${RELEASE_TAG#v}"
+          release_version="${RELEASE_TAG#v}"
+          test "$release_version" != "$RELEASE_TAG"
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/security/allowed-signers"
+          git verify-tag "$RELEASE_TAG"
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          tag_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
+          test -n "$tag_sha"
+          if [[ -n "${RELEASE_SHA:-}" ]]; then
+            test "$tag_sha" = "$RELEASE_SHA"
+          fi
+          git merge-base --is-ancestor "$tag_sha" refs/remotes/origin/main
+          echo "Verified signed tag $RELEASE_TAG at the protected main ancestry."
+
+      - name: Set up Node and npm
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Verify Node and npm toolchain
+        run: node scripts/check-toolchain.mjs --profile node-24-primary
+
+      - name: Verify npm registry metadata and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_version="${RELEASE_TAG#v}"
+
+          verify_package() {
+            local package="$1"
+            local version
+            local latest
+            local provenance_type
+            local attestation_url
+
+            version="$(node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "$package@$release_version" version --json | tr -d '\r\n"')"
+            latest="$(node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "$package" dist-tags.latest --json | tr -d '\r\n"')"
+            provenance_type="$(node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "$package@$release_version" dist.attestations.provenance.predicateType --json | tr -d '\r\n"')"
+            attestation_url="$(node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "$package@$release_version" dist.attestations.url --json | tr -d '\r\n"')"
+            encoded_package="${package#@}"
+            encoded_package="${encoded_package/\//%2f}"
+
+            test "$version" = "$release_version"
+            test "$latest" = "$release_version"
+            test "$provenance_type" = "https://slsa.dev/provenance/v1"
+            test "$attestation_url" = "https://registry.npmjs.org/-/npm/v1/attestations/@${encoded_package}@$release_version"
+            echo "Verified npm metadata, latest tag, and SLSA provenance for $package@$release_version."
+          }
+
+          verify_package "@noeos/verification-engine"
+          verify_package "@noeos/verification-engine-cli"
+
+      - name: Download and verify GitHub release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="${RUNNER_TEMP}/noeos-release-verification"
+          mkdir --parents "$work/release" "$work/npm"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease --jq '.tagName + " " + (.isDraft|tostring) + " " + (.isPrerelease|tostring)' > "$work/release/metadata"
+          read -r tag_name is_draft is_prerelease < "$work/release/metadata"
+          test "$tag_name" = "$RELEASE_TAG"
+          test "$is_draft" = "false"
+          test "$is_prerelease" = "false"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir "$work/release"
+          for asset in \
+            noeos-verification-engine-${RELEASE_TAG#v}.tgz \
+            noeos-verification-engine-cli-${RELEASE_TAG#v}.tgz \
+            SHA256SUMS \
+            SHA512SUMS; do
+            test -s "$work/release/$asset"
+          done
+          (cd "$work/release" && sha256sum --check SHA256SUMS && sha512sum --check SHA512SUMS)
+          echo "Verified GitHub release metadata and SHA256/SHA512 evidence."
+
+      - name: Verify release artifact attestations and npm tarballs
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="${RUNNER_TEMP}/noeos-release-verification"
+          release_version="${RELEASE_TAG#v}"
+          engine_archive="$work/release/noeos-verification-engine-$release_version.tgz"
+          cli_archive="$work/release/noeos-verification-engine-cli-$release_version.tgz"
+
+          for archive in "$engine_archive" "$cli_archive"; do
+            gh attestation verify "$archive" --repo "$GITHUB_REPOSITORY" > /dev/null
+            case "$archive" in
+              *verification-engine-cli-*) package="@noeos/verification-engine-cli" ;;
+              *) package="@noeos/verification-engine" ;;
+            esac
+            node scripts/run-verified-package-manager.mjs --profile node-24-primary -- pack --silent "$package@$release_version" --pack-destination "$work/npm" > /dev/null
+          done
+
+          cmp --silent "$engine_archive" "$work/npm/noeos-verification-engine-$release_version.tgz"
+          cmp --silent "$cli_archive" "$work/npm/noeos-verification-engine-cli-$release_version.tgz"
+          echo "Verified GitHub attestations and byte-identical npm tarballs."
+
+      - name: Verify package manifests and prohibited files
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="${RUNNER_TEMP}/noeos-release-verification"
+          release_version="${RELEASE_TAG#v}"
+          for archive in "$work/release"/*.tgz; do
+            if tar -tzf "$archive" | grep -E '(^|/)(\.git|\.npmrc|.*\.(pem|key|p12))$' > /dev/null; then
+              echo "A prohibited file was found in a release tarball."
+              exit 1
+            fi
+          done
+          for item in \
+            "@noeos/verification-engine|$work/release/noeos-verification-engine-$release_version.tgz" \
+            "@noeos/verification-engine-cli|$work/release/noeos-verification-engine-cli-$release_version.tgz"; do
+            package="${item%%|*}"
+            archive="${item#*|}"
+            extract="${RUNNER_TEMP}/manifest-${package##*/}"
+            rm --force --recursive "$extract"
+            mkdir --parents "$extract"
+            tar -xzf "$archive" -C "$extract"
+            PACKAGE_NAME="$package" RELEASE_VERSION="$release_version" MANIFEST="$extract/package/package.json" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+
+          const manifest = JSON.parse(await readFile(process.env.MANIFEST, "utf8"));
+          if (manifest.name !== process.env.PACKAGE_NAME || manifest.version !== process.env.RELEASE_VERSION) {
+            throw new Error(`Unexpected package manifest for ${process.env.PACKAGE_NAME}`);
+          }
+          NODE
+          done
+          echo "Verified package names, versions, and absence of prohibited files."
+
+      - name: Verify clean ESM, CommonJS, TypeScript, CLI, and npm signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="${RUNNER_TEMP}/noeos-release-verification"
+          release_version="${RELEASE_TAG#v}"
+          consumer="$work/consumer"
+          mkdir --parents "$consumer"
+          printf '%s\n' '{"name":"noeos-release-consumer","private":true,"type":"module"}' > "$consumer/package.json"
+          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- install --ignore-scripts --no-audit --no-fund --no-package-lock --prefix "$consumer" \
+            "$work/npm/noeos-verification-engine-$release_version.tgz" \
+            "$work/npm/noeos-verification-engine-cli-$release_version.tgz"
+          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- audit signatures --prefix "$consumer" --omit=optional
+          (cd "$consumer" && node --input-type=module <<'NODE'
+          import { createEngine, DIAGNOSTIC_CODES } from "@noeos/verification-engine";
+          if (typeof createEngine !== "function" || DIAGNOSTIC_CODES.length !== 64) process.exit(1);
+          NODE
+          node - <<'NODE'
+          const engine = require("@noeos/verification-engine");
+          if (typeof engine.createEngine !== "function" || engine.DIAGNOSTIC_CODES.length !== 64) process.exit(1);
+          NODE
+          "$consumer/node_modules/.bin/noeos-ve" version --output json > "$work/cli-version.json"
+          "$consumer/node_modules/.bin/noeos-ve" vectors verify --output json > "$work/cli-vectors.json"
+          grep -q '"version"' "$work/cli-version.json"
+          grep -q '"ok"[[:space:]]*:[[:space:]]*true' "$work/cli-vectors.json"
+          test -s "$consumer/node_modules/@noeos/verification-engine/dist/types/index.d.ts"
+          test -s "$consumer/node_modules/@noeos/verification-engine-cli/dist/types/main.d.ts"
+          )
+          echo "Verified clean ESM/CommonJS imports, TypeScript declarations, CLI behavior, and npm signatures."
