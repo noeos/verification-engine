@@ -40,6 +40,7 @@
     "pack:check": "node scripts/check-packages.mjs",
     "policy:check": "node scripts/check-policies.mjs",
     "reproducibility:check": "node scripts/check-reproducibility.mjs",
+    "release:verify:consumer": "node scripts/check-published-consumers.mjs",
     "sbom": "node scripts/generate-sbom.mjs",
     "security:audit": "npm audit --audit-level=moderate --ignore-scripts --omit=optional",
     "security:boundaries": "node scripts/check-security-boundaries.mjs",
