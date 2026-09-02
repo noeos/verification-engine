@@ -39,10 +39,10 @@ jobs:
       NPM_CONFIG_IGNORE_SCRIPTS: "true"
       NPM_CONFIG_OMIT: optional
     steps:
-      - name: Check out the signed release
+      - name: Check out the protected verification harness
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ env.RELEASE_TAG }}
+          ref: main
           fetch-depth: 0
           persist-credentials: false
 
@@ -53,6 +53,7 @@ jobs:
           test "$RELEASE_TAG" = "v${RELEASE_TAG#v}"
           release_version="${RELEASE_TAG#v}"
           test "$release_version" != "$RELEASE_TAG"
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
           git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/security/allowed-signers"
           git verify-tag "$RELEASE_TAG"
           git fetch --no-tags origin main:refs/remotes/origin/main
@@ -72,6 +73,9 @@ jobs:
 
       - name: Verify Node and npm toolchain
         run: node scripts/check-toolchain.mjs --profile node-24-primary
+
+      - name: Install verification harness dependencies
+        run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional
 
       - name: Verify npm registry metadata and provenance
         shell: bash
@@ -185,26 +189,4 @@ jobs:
           set -euo pipefail
           work="${RUNNER_TEMP}/noeos-release-verification"
           release_version="${RELEASE_TAG#v}"
-          consumer="$work/consumer"
-          mkdir --parents "$consumer"
-          printf '%s\n' '{"name":"noeos-release-consumer","private":true,"type":"module"}' > "$consumer/package.json"
-          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- install --ignore-scripts --no-audit --no-fund --no-package-lock --prefix "$consumer" \
-            "$work/npm/noeos-verification-engine-$release_version.tgz" \
-            "$work/npm/noeos-verification-engine-cli-$release_version.tgz"
-          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- audit signatures --prefix "$consumer" --omit=optional
-          (cd "$consumer" && node --input-type=module <<'NODE'
-          import { createEngine, DIAGNOSTIC_CODES } from "@noeos/verification-engine";
-          if (typeof createEngine !== "function" || DIAGNOSTIC_CODES.length !== 64) process.exit(1);
-          NODE
-          node - <<'NODE'
-          const engine = require("@noeos/verification-engine");
-          if (typeof engine.createEngine !== "function" || engine.DIAGNOSTIC_CODES.length !== 64) process.exit(1);
-          NODE
-          "$consumer/node_modules/.bin/noeos-ve" version --output json > "$work/cli-version.json"
-          "$consumer/node_modules/.bin/noeos-ve" vectors verify --output json > "$work/cli-vectors.json"
-          grep -q '"version"' "$work/cli-version.json"
-          grep -q '"ok"[[:space:]]*:[[:space:]]*true' "$work/cli-vectors.json"
-          test -s "$consumer/node_modules/@noeos/verification-engine/dist/types/index.d.ts"
-          test -s "$consumer/node_modules/@noeos/verification-engine-cli/dist/types/main.d.ts"
-          )
-          echo "Verified clean ESM/CommonJS imports, TypeScript declarations, CLI behavior, and npm signatures."
+          NOEOS_RELEASE_VERSION="$release_version" node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run release:verify:consumer
