@@ -1,6 +1,6 @@
 {
   "name": "@noeos/verification-engine-workspace",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Release workspace for the Noeos verification engine and CLI.",
   "license": "Apache-2.0",

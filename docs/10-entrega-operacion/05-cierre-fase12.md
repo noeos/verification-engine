@@ -1,6 +1,8 @@
 # Expediente operativo de cierre de fase 12
 
-Estado: **normativo; readiness para fase 13**
+Estado: **registro histórico; fase 12 completada y supersedida por el expediente de release 1.0.0**
+
+Este documento conserva el estado previo a la auditoría de fase 13. Para el estado final publicado, deben consultarse [`06-auditoria-release-1.0.0.md`](06-auditoria-release-1.0.0.md) y la [release v1.0.0](https://github.com/noeos/verification-engine/releases/tag/v1.0.0).
 
 Este documento es el índice operativo de la fase 12. No declara una revisión externa realizada: identifica la evidencia local, los controles que deben ejecutarse con el toolchain aprobado y las aprobaciones que solo pueden emitir sus responsables legítimos.
 

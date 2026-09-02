@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use Noeos Verification Engine in research or production, please cite the release and its exact tag."
+title: "Noeos Verification Engine"
+version: 1.0.1
+date-released: 2026-09-02
+type: software
+authors:
+  - name: "Noeos contributors"
+repository-code: "https://github.com/noeos/verification-engine"
+url: "https://github.com/noeos/verification-engine/releases/tag/v1.0.1"
+license: Apache-2.0
+keywords:
+  - verification
+  - data integrity
+  - hash chains
+  - cryptography
+  - audit trails
+  - offline-first

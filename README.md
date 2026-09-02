@@ -2,22 +2,62 @@
 
 [![CI](https://github.com/noeos/verification-engine/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/noeos/verification-engine/actions/workflows/ci.yml)
 [![Security](https://github.com/noeos/verification-engine/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/noeos/verification-engine/actions/workflows/security.yml)
+[![Performance evidence](https://github.com/noeos/verification-engine/actions/workflows/performance.yml/badge.svg?branch=main)](https://github.com/noeos/verification-engine/actions/workflows/performance.yml)
+[![Release verification](https://github.com/noeos/verification-engine/actions/workflows/release-verification.yml/badge.svg?branch=main)](https://github.com/noeos/verification-engine/actions/workflows/release-verification.yml)
+[![Release](https://img.shields.io/github/v/release/noeos/verification-engine?display_name=tag&sort=semver)](https://github.com/noeos/verification-engine/releases)
+[![npm engine](https://img.shields.io/npm/v/@noeos/verification-engine?logo=npm)](https://www.npmjs.com/package/@noeos/verification-engine)
+[![npm CLI](https://img.shields.io/npm/v/@noeos/verification-engine-cli?logo=npm)](https://www.npmjs.com/package/@noeos/verification-engine-cli)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/noeos/verification-engine/badge)](https://scorecard.dev/viewer/?uri=github.com/noeos/verification-engine)
 
-Noeos Verification Engine is the governed TypeScript workspace for the deterministic Noeos verification protocol. It brings the protocol specification, engine and command-line boundaries, security controls, release evidence, and reproducible build system into one independently auditable repository.
+Noeos Verification Engine is a deterministic, offline-first TypeScript library and CLI for data-integrity evidence. It normalizes records, computes framed cryptographic digests, builds verifiable hash-linked chains, and reports structured diagnostics without sending payloads to a service.
+
+The repository combines the public protocol contracts, runtime implementation, CLI, conformance vectors, security controls, release evidence, and reproducible build system into one independently auditable project.
 
 The protocol is designed for offline-first verification of data-integrity evidence, deterministic normalization, framed hashing, linked evidence chains, and stable machine-readable diagnostics. The normative contract lives in [`docs/`](./docs/README.md); implementation cannot silently override it.
+
+## Quick start
+
+Install the library in an application:
+
+```sh
+npm install @noeos/verification-engine@1.0.1
+```
+
+```ts
+import { createEngine } from "@noeos/verification-engine";
+
+const result = createEngine().hashRecord({
+  contextId: "example.context",
+  recordId: "record-001",
+  payload: { amount: 42, currency: "EUR" },
+  profile: { id: "dev.noeos.jcs", version: "1.0.0" },
+  algorithm: "sha-256",
+});
+
+if (!result.ok) throw new Error(result.diagnostics.map(({ code }) => code).join(", "));
+console.log(result.value.recordDigest);
+```
+
+Use the CLI for shell pipelines and NDJSON streams:
+
+```sh
+npx --yes @noeos/verification-engine-cli@1.0.1 version --output json
+printf '%s\n' '{"contextId":"example.context","recordId":"record-001","payload":{"amount":42},"profile":{"id":"dev.noeos.jcs","version":"1.0.0"},"algorithm":"sha-256"}' \\
+  | npx --yes @noeos/verification-engine-cli@1.0.1 record hash --output json
+```
+
+Start with the [engine package](https://www.npmjs.com/package/@noeos/verification-engine), [CLI package](https://www.npmjs.com/package/@noeos/verification-engine-cli), [API contract](./docs/03-contratos/01-api-publica.md), or [CLI contract](./docs/03-contratos/03-cli.md).
 
 ## Stable release
 
 Version `1.0.0` is the designated first stable release line. Integrate it only after the signed release tag and its matching npm package are available; do not rely on an untagged checkout for production evidence.
 
 ```sh
-npm install @noeos/verification-engine@1.0.0
-npm install --save-dev @noeos/verification-engine-cli@1.0.0
+npm install @noeos/verification-engine@1.0.1
+npm install --save-dev @noeos/verification-engine-cli@1.0.1
 ```
 
-The release evidence for each published version includes the API report, contracts, vector manifest, SBOM, package hashes, provenance, reproducibility result, security checks, and release notes.
+The [latest release](https://github.com/noeos/verification-engine/releases/latest) is built from a signed tag and published through GitHub Actions with npm Trusted Publishing/OIDC. Its evidence includes the API report, contracts, vector manifest, SBOM, package hashes, provenance, reproducibility result, security checks, performance report, attestations, and release notes.
 
 ## Repository guarantees
 
@@ -35,6 +75,17 @@ These controls describe the repository and release process. Product guarantees a
 
 - [`@noeos/verification-engine`](./packages/engine/): offline-first engine boundary, prepared for ESM and CommonJS with no runtime dependencies.
 - [`@noeos/verification-engine-cli`](./packages/cli/): Node.js command-line boundary, restricted to the engine and standard Node APIs.
+- [`docs/`](./docs/README.md): normative contracts, limits, security, operations, and integration guidance.
+
+## What it verifies
+
+- Deterministic raw-byte and JCS normalization.
+- Domain-separated content, record, and link digests.
+- Streaming evidence chains with bounded memory and cancellation.
+- Duplicate policies, limits, structured diagnostics, schemas, and public vectors.
+- ESM, CommonJS, TypeScript, JSON, and NDJSON consumer boundaries.
+
+The engine is intentionally domain-neutral. It does not provide tax, legal, identity, signature, certificate, hosting, storage, or regulatory-compliance services; those semantics belong to the integrating product.
 
 ## Supported toolchains
 

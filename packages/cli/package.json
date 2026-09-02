@@ -1,8 +1,20 @@
 {
   "name": "@noeos/verification-engine-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
-  "description": "Command-line interface for the Noeos verification engine.",
+  "description": "Deterministic CLI for hashing, verifying, and streaming integrity evidence with JSON and NDJSON output.",
+  "keywords": [
+    "verification",
+    "data-integrity",
+    "hash-chain",
+    "cryptography",
+    "audit-trail",
+    "evidence",
+    "offline-first",
+    "ndjson",
+    "cli",
+    "nodejs"
+  ],
   "license": "Apache-2.0",
   "author": "Noeos contributors",
   "type": "module",
@@ -29,7 +41,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@noeos/verification-engine": "1.0.0"
+    "@noeos/verification-engine": "1.0.1"
   },
   "repository": {
     "type": "git",
@@ -39,7 +51,7 @@
   "bugs": {
     "url": "https://github.com/noeos/verification-engine/issues"
   },
-  "homepage": "https://github.com/noeos/verification-engine#readme",
+  "homepage": "https://github.com/noeos/verification-engine/blob/main/docs/03-contratos/03-cli.md",
   "publishConfig": {
     "access": "public",
     "provenance": true,
