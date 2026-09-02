@@ -121,8 +121,28 @@ jobs:
         run: |
           set -euo pipefail
           release_version="${GITHUB_REF_NAME#v}"
-          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "@noeos/verification-engine@$release_version" version dist-tags --json
-          node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "@noeos/verification-engine-cli@$release_version" version dist-tags --json
+          verify_package() {
+            local package="$1"
+            local attempts=12
+            local attempt
+
+            for ((attempt = 1; attempt <= attempts; attempt += 1)); do
+              if node scripts/run-verified-package-manager.mjs --profile node-24-primary -- view "$package@$release_version" version dist-tags --json; then
+                return 0
+              fi
+
+              if ((attempt < attempts)); then
+                echo "Registry metadata for $package is not visible yet; retrying in 5 seconds ($attempt/$attempts)."
+                sleep 5
+              fi
+            done
+
+            echo "Registry metadata for $package was not visible after $attempts attempts."
+            return 1
+          }
+
+          verify_package "@noeos/verification-engine"
+          verify_package "@noeos/verification-engine-cli"
       - name: Create GitHub release with immutable evidence
         env:
           GH_TOKEN: ${{ github.token }}
