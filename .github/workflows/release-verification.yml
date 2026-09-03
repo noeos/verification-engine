@@ -126,7 +126,9 @@ jobs:
             SHA512SUMS; do
             test -s "$work/release/$asset"
           done
-          (cd "$work/release" && sha256sum --check SHA256SUMS && sha512sum --check SHA512SUMS)
+          mkdir --parents "$work/artifacts/release"
+          cp "$work/release/"*.tgz "$work/artifacts/release/"
+          (cd "$work" && sha256sum --check release/SHA256SUMS && sha512sum --check release/SHA512SUMS)
           echo "Verified GitHub release metadata and SHA256/SHA512 evidence."
 
       - name: Verify release artifact attestations and npm tarballs
