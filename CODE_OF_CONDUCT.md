@@ -59,14 +59,11 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported privately to abuse@noeos.es. Do not expose a report or reporter in a
-public issue. All complaints will be reviewed and investigated promptly and
-fairly.
+reported to the community leaders responsible for enforcement at abuse@noeos.es.
+All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
-reporter of any incident. Reports will be acknowledged, assessed for conflicts
-of interest, restricted to people needed for handling, and retained only as
-necessary for safety and legal obligations.
+reporter of any incident.
 
 ## Enforcement Guidelines
 
@@ -113,18 +110,6 @@ individual, or aggression toward or disparagement of classes of individuals.
 
 **Consequence**: A permanent ban from any sort of public interaction within
 the community.
-
-## Project-specific procedures
-
-Security vulnerabilities must be reported through [GitHub private vulnerability
-reporting](https://github.com/noeos/verification-engine/security/advisories/new)
-as described in `SECURITY.md`, not through a public issue or this conduct
-channel. Privacy requests may be sent to privacidad@noeos.es.
-
-An affected person may request one reconsideration through abuse@noeos.es,
-identifying a factual or procedural error. A person not responsible for the
-original decision will review the appeal when organizational capacity permits.
-Retaliation is itself a violation.
 
 ## Attribution
 
