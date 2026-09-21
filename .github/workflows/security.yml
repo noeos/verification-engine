@@ -58,7 +58,7 @@ jobs:
       - name: Install and build without lifecycle scripts
         run: node scripts/run-verified-package-manager.mjs --profile node-24-primary -- ci --ignore-scripts --omit=optional && node scripts/run-verified-package-manager.mjs --profile node-24-primary -- run build
       - name: Analyze
-        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
 
   secrets:
     name: Required · secret scan
